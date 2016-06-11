@@ -1,3 +1,4 @@
+package me.perrycate.groupmeutils.data;
 
 /**
  * Represents a group of messages, for example the most recent 20 messages

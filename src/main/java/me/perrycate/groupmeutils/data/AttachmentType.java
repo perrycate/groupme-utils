@@ -1,3 +1,5 @@
+package me.perrycate.groupmeutils.data;
+
 /**
  * Can be used to identify a specific type of attachment attached to a message
  */

@@ -1,3 +1,5 @@
+package me.perrycate.groupmeutils.data;
+
 import java.time.Instant;
 
 /**
