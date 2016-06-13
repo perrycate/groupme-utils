@@ -9,15 +9,14 @@ import com.google.gson.*;
 /**
  * Deserializes a JsonElement into a MessageCollection Object
  */
-public class GroupMessagesDeserializer
+public class GroupMessagesDeserializer extends GroupmeDeserializer
         implements JsonDeserializer<GroupMessages> {
 
     public GroupMessages deserialize(JsonElement jsonElement, Type typeOfT,
             JsonDeserializationContext context)
             throws JsonParseException {
 
-        JsonObject json = jsonElement.getAsJsonObject();
-        JsonObject response = json.get("response").getAsJsonObject();
+        JsonObject response = getResponse(jsonElement);
 
         JsonArray messagesJson = response.get("messages").getAsJsonArray();
         int count = response.get("count").getAsInt();
