@@ -6,5 +6,5 @@ package me.perrycate.groupmeutils.data;
 public enum AttachmentType {
     // TODO once this is part of a maven package we could probably shorten this to
     // just be called "Type".
-    IMAGE, LOCATION, SPLIT, EMOJI
+    IMAGE, LOCATION, SPLIT, EMOJI, MENTIONS
 }
