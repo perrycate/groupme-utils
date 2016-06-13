@@ -10,13 +10,14 @@ import com.google.gson.*;
 /**
  * Deserializes a JsonElement into a Message Object
  */
-public class MessageDeserializer implements JsonDeserializer<Message> {
+public class MessageDeserializer extends GroupmeDeserializer
+        implements JsonDeserializer<Message> {
 
     public Message deserialize(JsonElement jsonElement, Type typeOfT,
             JsonDeserializationContext context)
             throws JsonParseException {
 
-        JsonObject json = jsonElement.getAsJsonObject();
+        JsonObject json = getResponse(jsonElement);
         MessageBuilder m = new MessageBuilder();
 
         // Set primitive properties
