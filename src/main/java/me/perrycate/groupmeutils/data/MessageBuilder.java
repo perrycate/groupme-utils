@@ -32,6 +32,11 @@ public class MessageBuilder {
         // Everything else we leave null and set with setters below
     }
 
+    public Message createMessage() {
+        return new Message(id, sourceGuid, createdAt, userId, groupId, name,
+                avatarUrl, text, system, favoritedBy, attachments);
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -75,10 +80,4 @@ public class MessageBuilder {
     public void setAttachments(Attachment[] attachments) {
         this.attachments = attachments;
     }
-
-    public Message createMessage() {
-        return new Message(id, sourceGuid, createdAt, userId, groupId, name,
-                avatarUrl, text, system, favoritedBy, attachments);
-    }
-
 }
