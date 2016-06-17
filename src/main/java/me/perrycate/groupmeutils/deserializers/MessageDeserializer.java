@@ -17,7 +17,7 @@ public class MessageDeserializer extends GroupmeDeserializer
             JsonDeserializationContext context)
             throws JsonParseException {
 
-        JsonObject json = getResponse(jsonElement);
+        JsonObject json = getResponse(jsonElement).getAsJsonObject();
         MessageBuilder m = new MessageBuilder();
 
         // Set primitive properties
@@ -29,7 +29,9 @@ public class MessageDeserializer extends GroupmeDeserializer
         m.setGroupId(json.get("group_id").getAsString());
         m.setName(json.get("name").getAsString());
         m.setAvatarUrl(json.get("avatar_url").getAsString());
-        m.setText(json.get("text").getAsString());
+        if (!json.get("text").isJsonNull()) { // could happen if only image sent
+            m.setText(json.get("text").getAsString());
+        }
         m.setSystem(json.get("system").getAsBoolean());
 
         // Set list of ids of people who liked this message 

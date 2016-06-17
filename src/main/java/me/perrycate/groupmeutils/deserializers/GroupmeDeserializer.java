@@ -20,13 +20,13 @@ public class GroupmeDeserializer {
      * returns it such that in either case the deserializers are dealing with
      * the same thing.
      */
-    public JsonObject getResponse(JsonElement jsonElement) {
+    public JsonElement getResponse(JsonElement jsonElement) {
         JsonObject json = jsonElement.getAsJsonObject();
 
         if (json.has("response")) {
-            return json.get("response").getAsJsonObject();
+            return json.get("response");
         } else {
-            return json;
+            return jsonElement;
         }
 
     }

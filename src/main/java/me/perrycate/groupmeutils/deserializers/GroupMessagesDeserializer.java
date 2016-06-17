@@ -16,7 +16,7 @@ public class GroupMessagesDeserializer extends GroupmeDeserializer
             JsonDeserializationContext context)
             throws JsonParseException {
 
-        JsonObject response = getResponse(jsonElement);
+        JsonObject response = getResponse(jsonElement).getAsJsonObject();
 
         JsonArray messagesJson = response.get("messages").getAsJsonArray();
         int count = response.get("count").getAsInt();
