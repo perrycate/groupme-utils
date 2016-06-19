@@ -28,7 +28,9 @@ public class MessageDeserializer extends GroupmeDeserializer
         m.setUserId(json.get("user_id").getAsString());
         m.setGroupId(json.get("group_id").getAsString());
         m.setName(json.get("name").getAsString());
-        m.setAvatarUrl(json.get("avatar_url").getAsString());
+        if (!json.get("avatar_url").isJsonNull()) { // null if user is using default avatar
+            m.setAvatarUrl(json.get("avatar_url").getAsString());
+        }
         if (!json.get("text").isJsonNull()) { // could happen if only image sent
             m.setText(json.get("text").getAsString());
         }
