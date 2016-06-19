@@ -64,6 +64,26 @@ public class Client {
     }
 
     /**
+     * Returns a group of the 100 most recent messages in group with groupId
+     * after the message with afterId.
+     */
+    public GroupMessages getMessagesBefore(String groupId, String beforeId) {
+        String target = "/groups/" + groupId + "/messages";
+
+        // get request url
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("before_id", beforeId);
+        URL url = createUrl(target, params);
+
+        // Make request
+        InputStream resultStream = makeGETRequest(url);
+
+        // Deserialize returned JSON into a MessageCollection
+        Reader reader = new InputStreamReader(resultStream);
+        return gson.fromJson(reader, GroupMessages.class);
+    }
+
+    /**
      * Builds a valid request url to target with the given params as GET
      * parameters. Target MUST start with a "/".
      */
