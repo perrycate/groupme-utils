@@ -31,7 +31,9 @@ public class GroupDeserializer extends GroupmeDeserializer
         g.setCreatedAt(Instant.ofEpochSecond(createTime));
         long updateTime = json.get("updated_at").getAsLong();
         g.setUpdatedAt(Instant.ofEpochSecond(updateTime));
-        g.setShareUrl(json.get("shareUrl").getAsString());
+        if (!json.get("share_url").isJsonNull()) {
+            g.setShareUrl(json.get("share_url").getAsString());
+        }
 
         //TODO this will be reworked later, see note in Group Class.
         JsonObject messages = json.get("messages").getAsJsonObject();

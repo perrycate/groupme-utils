@@ -1,6 +1,7 @@
 package me.perrycate.groupmeutils.deserializers;
 
 import com.google.gson.JsonObject;
+
 import com.google.gson.JsonElement;
 
 /**
@@ -22,12 +23,20 @@ public class GroupmeDeserializer {
      */
     public JsonElement getResponse(JsonElement jsonElement) {
         JsonObject json = jsonElement.getAsJsonObject();
-
         if (json.has("response")) {
             return json.get("response");
         } else {
             return jsonElement;
         }
 
+    }
+
+    /**
+     * Returns the HTTP code associated with a response from the groupme servers 
+     */
+    private int getErrorCode(JsonElement json) {
+        JsonObject envelope = json.getAsJsonObject();
+        JsonObject metadata = envelope.get("meta").getAsJsonObject();
+        return metadata.get("code").getAsInt();
     }
 }

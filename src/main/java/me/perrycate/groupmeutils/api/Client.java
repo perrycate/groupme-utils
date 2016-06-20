@@ -16,8 +16,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import me.perrycate.groupmeutils.data.Message;
+import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 import me.perrycate.groupmeutils.deserializers.MessageDeserializer;
+import me.perrycate.groupmeutils.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.deserializers.GroupMessagesDeserializer;
 
 /**
@@ -25,8 +27,14 @@ import me.perrycate.groupmeutils.deserializers.GroupMessagesDeserializer;
  * package.
  */
 public class Client {
+    // HTTP related constants
     private static final String BASE_URL = "https://api.groupme.com/v3";
     private static final String CHARSET = "UTF-8";
+
+    // GroupMe Api Constants
+    /** The maximum number of messages that can be retrieved from a group in a
+     * single network request. */
+    public static final int MAX_MESSAGES = 100;
 
     private final String apiToken;
     private final Gson gson; // used for deserializing things
@@ -40,6 +48,8 @@ public class Client {
                 new MessageDeserializer());
         gsonBuilder.registerTypeAdapter(GroupMessages.class,
                 new GroupMessagesDeserializer());
+        gsonBuilder.registerTypeAdapter(Group.class, new GroupDeserializer());
+
         gson = gsonBuilder.create();
     }
 
@@ -73,6 +83,7 @@ public class Client {
         // get request url
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("before_id", beforeId);
+        params.put("limit", "" + MAX_MESSAGES);
         URL url = createUrl(target, params);
 
         // Make request
@@ -81,6 +92,24 @@ public class Client {
         // Deserialize returned JSON into a MessageCollection
         Reader reader = new InputStreamReader(resultStream);
         return gson.fromJson(reader, GroupMessages.class);
+    }
+
+    /**
+     * Returns a group matching the given id
+     */
+    public Group getGroup(String id) {
+        String target = "/groups/" + id;
+
+        // Get request url
+        HashMap<String, String> params = new HashMap<String, String>();
+        URL url = createUrl(target, params);
+
+        // Make request
+        InputStream resultStream = makeGETRequest(url);
+
+        // Deserialize returned JSON into a Group
+        Reader reader = new InputStreamReader(resultStream);
+        return gson.fromJson(reader, Group.class);
     }
 
     /**
