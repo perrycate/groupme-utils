@@ -60,45 +60,29 @@ public class Dump {
     public void dumpFromTop(File outputFile) {
         // Get each message starting from bottom, write each chunk of 100
         // messages to an individual file, then concatenate them.
+        // We do this to avoid attempting to store the entire group in memory
+        // while still not duplicating any network calls.
 
-        GroupMessages messages = groupme.getMessagesBefore(groupId,
-                lastMessageId);
-
-        // Create directory to store temp files in
+        // Create temporary directory to store chunks
         String dirname = "temp-" + Math.round(Math.random() * 1000000000);
         File tempdir = new File(dirname);
         tempdir.mkdir();
 
-        // Write each group of 100 messages from the server to a sepparate
-        // file in tempdir
-        int totalMessages = messages.getCount();
-        int fileCount = 0;
-        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
-            fileCount++;
-            messages = groupme.getMessagesBefore(groupId, lastMessageId);
-            File newFile = new File(tempdir + "/" + fileCount + ".txt");
-            PrintWriter out = getPrinter(newFile);
+        // Dump groupme to a series of mini-files, aka chunks
+        int fileCount = dumpToChunks(tempdir);
 
-            int length = messages.getMessages().length;
-            for (int j = length - 1; j >= 0; j--) {
-                print(messages.getMessage(j), out);
-            }
-            lastMessageId = messages.getMessage(length - 1).getId();
-            out.close();
-        }
-
-        // Concatenate each mini-file into a single log
+        // Concatenate each chunk into a single log
         try {
             FileOutputStream output = new FileOutputStream(outputFile);
             for (int i = fileCount; i > 0; i--) {
                 Path file = Paths.get(dirname + "/" + i + ".txt");
                 output.write(Files.readAllBytes(file));
-                // Delete mini-file after using
+                // Delete chunk after reading
                 Files.delete(file);
             }
             output.close();
         } catch (FileNotFoundException e) {
-            System.err.println("FATAL: Could not open output file " +
+            System.err.println("FATAL: Could not open chunk file " +
                     outputFile + " for writing.");
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -111,6 +95,45 @@ public class Dump {
         } catch (IOException e) {
             System.out.println("WARNING: Failed to delete temporary directory");
         }
+
+    }
+
+    /**
+     * Dumps the group to a specified folder. Messages will be dumped to a
+     * series of .txt files, each of length 100 with the most recent message at
+     * the bottom. The .txt files are numbered, so the most recent 100 messages
+     * in the group are in 1.txt, the ones immediately preceding those are in
+     * 2.txt, and so for. If the specified output folder was not a valid
+     * directory, return -1. Otherwise, return the number of files written.
+     */
+    public int dumpToChunks(File outputFolder) {
+
+        if (!outputFolder.isDirectory()) {
+            return -1;
+        }
+
+        GroupMessages messages = groupme.getMessagesBefore(groupId,
+                lastMessageId);
+
+        // Write each group of 100 messages from the server to a separate
+        // file in outputFolder
+        int totalMessages = messages.getCount();
+        int fileCount = 0;
+        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
+            fileCount++;
+            messages = groupme.getMessagesBefore(groupId, lastMessageId);
+            File newFile = new File(outputFolder + "/" + fileCount + ".txt");
+            PrintWriter out = getPrinter(newFile);
+
+            int length = messages.getMessages().length;
+            for (int j = length - 1; j >= 0; j--) {
+                print(messages.getMessage(j), out);
+            }
+            lastMessageId = messages.getMessage(length - 1).getId();
+            out.close();
+        }
+
+        return fileCount;
 
     }
 
