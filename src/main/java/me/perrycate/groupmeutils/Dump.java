@@ -23,8 +23,8 @@ public class Dump {
     private String lastMessageId;
     private Group group;
 
-    public Dump(String token, Group group) {
-        groupme = new Client(token);
+    public Dump(Client groupmeClient, Group group) {
+        this.groupme = groupmeClient;
         this.group = group;
         this.groupId = group.getId();
         this.lastMessageId = group.getLastMessageId();
