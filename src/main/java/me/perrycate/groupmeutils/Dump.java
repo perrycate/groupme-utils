@@ -2,7 +2,12 @@ package me.perrycate.groupmeutils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import me.perrycate.groupmeutils.api.Client;
 import me.perrycate.groupmeutils.data.Group;
@@ -52,17 +57,61 @@ public class Dump {
      * Dumps the group to output in order, with most recent messages appearing
      * at the bottom.
      */
-    public void dumpFromTop(File output) {
+    public void dumpFromTop(File outputFile) {
         // Get each message starting from bottom, write each chunk of 100
         // messages to an individual file, then concatenate them.
 
-        PrintWriter out = getPrinter(output);
         GroupMessages messages = groupme.getMessagesBefore(groupId,
                 lastMessageId);
 
-        // Create temporary output directory
+        // Create directory to store temp files in
+        String dirname = "temp-" + Math.round(Math.random() * 1000000000);
+        File tempdir = new File(dirname);
+        tempdir.mkdir();
 
+        // Write each group of 100 messages from the server to a sepparate
+        // file in tempdir
         int totalMessages = messages.getCount();
+        int fileCount = 0;
+        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
+            fileCount++;
+            messages = groupme.getMessagesBefore(groupId, lastMessageId);
+            File newFile = new File(tempdir + "/" + fileCount + ".txt");
+            PrintWriter out = getPrinter(newFile);
+
+            int length = messages.getMessages().length;
+            for (int j = length - 1; j >= 0; j--) {
+                print(messages.getMessage(j), out);
+            }
+            lastMessageId = messages.getMessage(length - 1).getId();
+            out.close();
+        }
+
+        // Concatenate each mini-file into a single log
+        try {
+            FileOutputStream output = new FileOutputStream(outputFile);
+            for (int i = fileCount; i > 0; i--) {
+                Path file = Paths.get(dirname + "/" + i + ".txt");
+                output.write(Files.readAllBytes(file));
+                // Delete mini-file after using
+                Files.delete(file);
+            }
+            output.close();
+        } catch (FileNotFoundException e) {
+            System.err.println("FATAL: Could not open output file " +
+                    outputFile + " for writing.");
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Delete temporary directory
+        try {
+            Files.delete(Paths.get(dirname));
+        } catch (IOException e) {
+            System.out.println("WARNING: Failed to delete temporary directory");
+        }
+
     }
 
     private PrintWriter getPrinter(File file) {
