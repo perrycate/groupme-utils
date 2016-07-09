@@ -165,18 +165,28 @@ public class Dump {
         }
     }
 
-    private void print(Message message, PrintWriter output) {
+    /**
+     * Returns message in text format
+     */
+    private String format(Message message) {
         if (message.getText() == null) {
-            output.println(message.getId() + " | "
+            return message.getId() + " | "
                     + message.getCreatedAt() + " | "
                     + message.getName() + " posted a picture: "
-                    + "//NOT IMPLEMENTED YET, SORRY"); // TODO
+                    + "//NOT IMPLEMENTED YET, SORRY" + '\n'; // TODO
         } else {
-            output.println(message.getId() + " | "
+            return message.getId() + " | "
                     + message.getCreatedAt() + " | "
                     + message.getName() + ": "
-                    + message.getText());
+                    + message.getText() + '\n';
         }
+    }
+
+    /**
+     * Prints message to a printwriter in text format.
+     */
+    private void print(Message message, PrintWriter output) {
+        output.println(format(message));
     }
 
 }
