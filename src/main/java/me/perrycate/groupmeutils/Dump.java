@@ -83,7 +83,7 @@ public class Dump {
                 Path file = chunks.get(i).toPath();
                 output.write(Files.readAllBytes(file));
                 // Delete chunk after reading
-                //Files.delete(file);
+                Files.delete(file);
             }
             output.close();
         } catch (IOException e) {
