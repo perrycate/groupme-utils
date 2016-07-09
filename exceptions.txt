@@ -1,0 +1,3 @@
+Things that could go wrong and will have to be handled at some point
+
+UnknownHostException - wifi disconnects
