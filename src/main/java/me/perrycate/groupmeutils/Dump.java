@@ -65,13 +65,16 @@ public class Dump {
         // We do this to avoid attempting to store the entire group in memory
         // while still not duplicating any network calls.
 
-        // Create temporary directory to store chunks
-        String dirname = "temp-" + Math.round(Math.random() * 1000000000);
-        File tempdir = new File(dirname);
-        tempdir.mkdir();
+        // Get temporary directory to store chunks
+        Path tempdir;
+        try {
+            tempdir = Files.createTempDirectory("groupme-dump-");
+        } catch (IOException e1) {
+            throw new RuntimeException(e1);
+        }
 
         // Dump groupme to a series of mini-files, aka chunks
-        List<File> chunks = dumpToChunks(tempdir.toPath());
+        List<File> chunks = dumpToChunks(tempdir);
 
         // Concatenate each chunk into a single log
         try {
@@ -89,7 +92,7 @@ public class Dump {
 
         // Delete temporary directory. Comment this out for debugging help.
         try {
-            Files.delete(tempdir.toPath());
+            Files.delete(tempdir);
         } catch (IOException e) {
             System.out.println(
                     "WARNING: Failed to delete temporary directory!"
