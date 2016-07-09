@@ -2,3 +2,6 @@
 .project
 .settings/
 /target/
+/test/
+/src/test/
+acapellago*
