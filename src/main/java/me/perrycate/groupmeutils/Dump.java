@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import me.perrycate.groupmeutils.api.Client;
 import me.perrycate.groupmeutils.data.Group;
@@ -69,72 +71,82 @@ public class Dump {
         tempdir.mkdir();
 
         // Dump groupme to a series of mini-files, aka chunks
-        int fileCount = dumpToChunks(tempdir);
+        List<File> chunks = dumpToChunks(tempdir.toPath());
 
         // Concatenate each chunk into a single log
         try {
             FileOutputStream output = new FileOutputStream(outputFile);
-            for (int i = fileCount; i > 0; i--) {
-                Path file = Paths.get(dirname + "/" + i + ".txt");
+            for (int i = chunks.size() - 1; i >= 0; i--) {
+                Path file = chunks.get(i).toPath();
                 output.write(Files.readAllBytes(file));
                 // Delete chunk after reading
-                Files.delete(file);
+                //Files.delete(file);
             }
             output.close();
-        } catch (FileNotFoundException e) {
-            System.err.println("FATAL: Could not open chunk file " +
-                    outputFile + " for writing.");
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        // Delete temporary directory
+        // Delete temporary directory. Comment this out for debugging help.
         try {
-            Files.delete(Paths.get(dirname));
+            Files.delete(tempdir.toPath());
         } catch (IOException e) {
-            System.out.println("WARNING: Failed to delete temporary directory");
+            System.out.println(
+                    "WARNING: Failed to delete temporary directory!"
+                            + " Maybe not all messages were written to the log?");
         }
+        //*/
 
     }
 
     /**
-     * Dumps the group to a specified folder. Messages will be dumped to a
+     * Dumps the group to a specified outputFolder. Messages will be dumped to a
      * series of .txt files, each of length 100 with the most recent message at
      * the bottom. The .txt files are numbered, so the most recent 100 messages
      * in the group are in 1.txt, the ones immediately preceding those are in
-     * 2.txt, and so for. If the specified output folder was not a valid
-     * directory, return -1. Otherwise, return the number of files written.
+     * 2.txt, and so for. Otherwise, return a list of Path objects pointing to
+     * the chunks created, in the order that they were created. (list[0] was the
+     *  first chunk created, and so forth.)
      */
-    public int dumpToChunks(File outputFolder) {
+    public List<File> dumpToChunks(Path outputFolder) {
 
-        if (!outputFolder.isDirectory()) {
-            return -1;
-        }
-
+        ArrayList<File> chunksWritten = new ArrayList<File>();
+        //TODO: BUG: The first chunk will be missing the latest message to the
+        // group. This is because the getMessagesBefore excludes lastMessageId.  
+        // Best fix I can think of is making a separate getMessages method
+        // that just gets the most recent messages, and using that here (just in
+        // this one line) instead of getMessagesBefore
         GroupMessages messages = groupme.getMessagesBefore(groupId,
                 lastMessageId);
 
         // Write each group of 100 messages from the server to a separate
         // file in outputFolder
         int totalMessages = messages.getCount();
-        int fileCount = 0;
         for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
-            fileCount++;
             messages = groupme.getMessagesBefore(groupId, lastMessageId);
-            File newFile = new File(outputFolder + "/" + fileCount + ".txt");
-            PrintWriter out = getPrinter(newFile);
-
-            int length = messages.getMessages().length;
-            for (int j = length - 1; j >= 0; j--) {
-                print(messages.getMessage(j), out);
-            }
-            lastMessageId = messages.getMessage(length - 1).getId();
-            out.close();
+            File newFile = new File(outputFolder + "/" + chunksWritten.size() +
+                    ".txt");
+            writeChunk(messages, newFile);
+            chunksWritten.add(newFile);
         }
 
-        return fileCount;
+        return chunksWritten;
 
+    }
+
+    /**
+     * Writes messages to specified chunk. (A chunk is just a short text file
+     * containing 100 or less messages in text format.) 
+     */
+    private void writeChunk(GroupMessages messages, File chunk) {
+        PrintWriter out = getPrinter(chunk);
+
+        int length = messages.getMessages().length;
+        for (int j = length - 1; j >= 0; j--) {
+            print(messages.getMessage(j), out);
+        }
+        lastMessageId = messages.getMessage(length - 1).getId();
+        out.close();
     }
 
     private PrintWriter getPrinter(File file) {
