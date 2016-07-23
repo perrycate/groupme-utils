@@ -23,8 +23,8 @@ import me.perrycate.groupmeutils.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.deserializers.GroupMessagesDeserializer;
 
 /**
- * Interacts with the GroupMe Api, returning serialized objects from the data
- * package.
+ * Contains useful methods for interacting with the GroupMe Api that return
+ * serialized objects from the groupmeutils.data package.
  */
 public class Client {
     // HTTP related constants
