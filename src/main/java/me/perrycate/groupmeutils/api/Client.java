@@ -16,11 +16,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import me.perrycate.groupmeutils.data.Message;
+import me.perrycate.groupmeutils.data.deserializers.GroupDeserializer;
+import me.perrycate.groupmeutils.data.deserializers.GroupMessagesDeserializer;
+import me.perrycate.groupmeutils.data.deserializers.MessageDeserializer;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
-import me.perrycate.groupmeutils.deserializers.MessageDeserializer;
-import me.perrycate.groupmeutils.deserializers.GroupDeserializer;
-import me.perrycate.groupmeutils.deserializers.GroupMessagesDeserializer;
 
 /**
  * Contains useful methods for interacting with the GroupMe Api that return

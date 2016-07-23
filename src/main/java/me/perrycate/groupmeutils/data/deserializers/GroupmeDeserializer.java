@@ -1,4 +1,4 @@
-package me.perrycate.groupmeutils.deserializers;
+package me.perrycate.groupmeutils.data.deserializers;
 
 import com.google.gson.JsonObject;
 
