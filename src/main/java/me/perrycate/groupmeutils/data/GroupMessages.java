@@ -20,20 +20,28 @@ public class GroupMessages {
         this.count = count;
     }
 
+    /**
+     * Returns a list of the messages this GroupMessages object was created with.
+     * What these messages are depends on what created this object.
+     */
     public Message[] getMessages() {
         return messages;
     }
 
+    /**
+     * Returns the message at index index.
+     */
     public Message getMessage(int index) {
         return messages[index];
     }
 
+    /**
+     * WARNING: Following the pattern set by groupme's API, this returns the
+     * total number of messages in the group this GroupMessage's messages are
+     * from. However, groupme only sends messages in groups of 100, so 
+     * this.getCount() is often very different from this.getMessages().length.
+     */
     public int getCount() {
         return count;
     }
-
-    public void setMessages(Message[] messages) {
-        this.messages = messages;
-    }
-
 }
