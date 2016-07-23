@@ -25,7 +25,9 @@ public class GroupDeserializer extends GroupmeDeserializer
         g.setName(json.get("name").getAsString());
         g.setType(json.get("type").getAsString());
         g.setDescription(json.get("description").getAsString());
-        g.setImageUrl(json.get("image_url").getAsString());
+        if (!json.get("image_url").isJsonNull()) {
+            g.setImageUrl(json.get("image_url").getAsString());
+        }
         g.setCreatorUserId(json.get("creator_user_id").getAsString());
         long createTime = json.get("created_at").getAsLong();
         g.setCreatedAt(Instant.ofEpochSecond(createTime));

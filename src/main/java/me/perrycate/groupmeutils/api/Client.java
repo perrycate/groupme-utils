@@ -75,7 +75,7 @@ public class Client {
 
     /**
      * Returns a group of the 100 most recent messages in group with groupId
-     * after the message with afterId.
+     * after the message with afterId. The message at index 0 is the most recent.
      */
     public GroupMessages getMessagesBefore(String groupId, String beforeId) {
         String target = "/groups/" + groupId + "/messages";
@@ -110,6 +110,43 @@ public class Client {
         // Deserialize returned JSON into a Group
         Reader reader = new InputStreamReader(resultStream);
         return gson.fromJson(reader, Group.class);
+    }
+
+    /**
+     * Likes the given message. Returns true if successful, false otherwise.
+     */
+    public boolean likeMessage(Message m) {
+        String messageid = m.getId();
+        String groupId = m.getGroupId();
+
+        URL url = createUrl("/messages/" + groupId + "/" + messageid + "/like");
+        InputStream result = makePOSTRequest(url);
+
+        // Probably a better way to check for success/failure than this.
+        if (result != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Unlikes the given message. Returns true if successful, false otherwise.
+     */
+    public boolean unlikeMessage(Message m) {
+        String messageid = m.getId();
+        String groupId = m.getGroupId();
+
+        URL url = createUrl(
+                "/messages/" + groupId + "/" + messageid + "/unlike");
+        InputStream result = makePOSTRequest(url);
+
+        // Probably a better way to check for success/failure than this.
+        if (result != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -155,6 +192,11 @@ public class Client {
 
     }
 
+    /**
+     * TODO Maybe Split these into 2 parts: One that makes request and returns
+     * the connection so we can check for errors using HTTP codes, another that
+     * uses the first and just returns an inputStream if that's all we need.
+     */
     public InputStream makeGETRequest(URL url) {
         InputStream stream = null;
 
@@ -166,8 +208,24 @@ public class Client {
             connection.connect();
             stream = connection.getInputStream();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return stream;
+    }
+
+    public InputStream makePOSTRequest(URL url) {
+        InputStream stream = null;
+
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url
+                    .openConnection();
+            connection.setRequestMethod("POST");
+
+            connection.connect();
+            stream = connection.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         return stream;
