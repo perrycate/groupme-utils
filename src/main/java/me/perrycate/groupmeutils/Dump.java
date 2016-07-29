@@ -186,7 +186,7 @@ public class Dump {
      * Prints message to a printwriter in text format.
      */
     private void print(Message message, PrintWriter output) {
-        output.println(format(message));
+        output.print(format(message));
     }
 
 }
