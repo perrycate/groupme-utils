@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import me.perrycate.groupmeutils.data.Message;
+import me.perrycate.groupmeutils.data.deserializers.GroupArrayDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupMessagesDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.MessageDeserializer;
@@ -49,8 +50,23 @@ public class Client {
         gsonBuilder.registerTypeAdapter(GroupMessages.class,
                 new GroupMessagesDeserializer());
         gsonBuilder.registerTypeAdapter(Group.class, new GroupDeserializer());
+        gsonBuilder.registerTypeAdapter(Group[].class,
+                new GroupArrayDeserializer());
 
         gson = gsonBuilder.create();
+    }
+
+    /**
+     * Returns an array of Groups that the user is in.
+     */
+    public Group[] getGroups() {
+        String target = "/groups";
+
+        InputStream resultStream = makeGETRequest(createUrl(target));
+
+        Reader reader = new InputStreamReader(resultStream);
+
+        return gson.fromJson(reader, Group[].class);
     }
 
     /**
