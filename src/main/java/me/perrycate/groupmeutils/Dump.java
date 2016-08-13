@@ -1,8 +1,11 @@
 package me.perrycate.groupmeutils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -94,12 +97,92 @@ public class Dump {
         try {
             Files.delete(tempdir);
         } catch (IOException e) {
+            System.err.println(e);
             System.out.println(
                     "WARNING: Failed to delete temporary directory!"
                             + " Maybe not all messages were written to the log?");
         }
         //*/
 
+    }
+
+    /**
+     * Scans the groupme for any new messages ocurring after the last message
+     * in inputFile, and appends new messages to the bottom.
+     * 
+     * This method assumes that inputFile is the result of a previous
+     * dumpFromTop or appendFromTop call, and thus maintains the same output
+     * format.
+     * 
+     * Returns the number of lines appended, or -1 if inputFile could not be 
+     * opened.
+     *
+     * TODO this method breaks if inputFile and outputFile are the same
+     */
+    public int appendFromTop(File inputFile, File outputFile) {
+
+        PrintWriter output = getPrinter(outputFile);
+        FileReader r;
+        try {
+            r = new FileReader(inputFile);
+        } catch (FileNotFoundException e) {
+            //TODO throw exception instead
+            return -1;
+        }
+        BufferedReader reader = new BufferedReader(r);
+
+        // Find the last message in the file. Ideally there is a faster way to
+        // do this other than reading through it line by line from the top, but
+        // I have not found it yet.
+        String lastLine = "";
+        String tmp = "";
+        try { // TODO Almost certainly a better way to structure this
+            tmp = reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        while (tmp != null) {
+            lastLine = tmp;
+            output.println(lastLine); // Copy existing messages into new file
+            try {
+                tmp = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        try {
+            reader.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // get ID of last message in file
+        String lastIdInFile = readIdFromLine(lastLine);
+
+        // Append new messages to group
+        // TODO we shouldn't assume that it's not a giant group of messages,
+        // that is, we should dump these to chunks as in the regular dumpFromTop
+        // method. First though, we need more robust dumpToChunk methods.
+        GroupMessages messageGroup;
+        messageGroup = groupme.getMessagesAfter(groupId, lastIdInFile);
+        int diffLines = 0;
+        while (messageGroup.getMessages().length > 0) {
+            Message[] messages = messageGroup.getMessages();
+
+            for (int j = 0; j < messages.length; j++) {
+                print(messages[j], output);
+                diffLines++;
+            }
+
+            lastIdInFile = messages[messages.length - 1].getId();
+
+            messageGroup = groupme.getMessagesAfter(groupId, lastIdInFile);
+        }
+        output.close();
+
+        return diffLines;
+        //*/
     }
 
     /**
@@ -152,6 +235,9 @@ public class Dump {
         out.close();
     }
 
+    /**
+     * Returns a PrintWriter to the specified file
+     */
     private PrintWriter getPrinter(File file) {
 
         try {
@@ -173,12 +259,12 @@ public class Dump {
             return message.getId() + " | "
                     + message.getCreatedAt() + " | "
                     + message.getName() + " posted a picture: "
-                    + "//NOT IMPLEMENTED YET, SORRY" + '\n'; // TODO
+                    + "//NOT IMPLEMENTED YET, SORRY"; // TODO
         } else {
             return message.getId() + " | "
                     + message.getCreatedAt() + " | "
                     + message.getName() + ": "
-                    + message.getText() + '\n';
+                    + message.getText();
         }
     }
 
@@ -186,7 +272,22 @@ public class Dump {
      * Prints message to a printwriter in text format.
      */
     private void print(Message message, PrintWriter output) {
-        output.print(format(message));
+        output.println(format(message));
+    }
+
+    /**
+     * Parses out the message id from a given line. Assumes that line has been
+     * extracted from a dump from one of this class's dump methods.
+     */
+    private String readIdFromLine(String line) {
+        line = line.trim();
+        // In the future we may use asterisks to denote that user liked a
+        // message, might as well start planning for it now.
+        if (line.startsWith("*")) {
+            line = line.substring(1);
+        }
+        String[] divided = line.split("\\|");
+        return divided[0].trim();
     }
 
 }
