@@ -66,7 +66,7 @@ public class ProgressBar {
     public void update() {
 
         // If we're already complete, don't bother proceeding.
-        if (progress == barWidth) {
+        if (currentValue == maxValue) {
             if (strictMode) {
                 throw new RuntimeException(
                         "Unecessary update() to progress bar,"
