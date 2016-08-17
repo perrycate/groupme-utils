@@ -51,6 +51,9 @@ public class ProgressBar {
         this.currentValue = 0;
         this.progress = 0;
         this.barWidth = lineWidth - NON_BAR_CHARACTERS;
+        if (barWidth < 1) {
+            barWidth = 1;
+        }
 
         draw();
 
