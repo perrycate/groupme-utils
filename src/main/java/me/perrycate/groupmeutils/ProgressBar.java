@@ -10,8 +10,9 @@ import java.util.concurrent.TimeUnit;
  * NOTE: Assumes that nothing else is writing to the output stream at the same
  * time.
  * 
- * No guarantees are made that the progress bar is 100% accurate, although it
- * should be close enough for display purposes.
+ * Due to potential rounding errors, no guarantees are made that the progress
+ * bar is 100% accurate, although it should be close enough for display
+ * purposes.
  */
 public class ProgressBar {
 
@@ -32,8 +33,8 @@ public class ProgressBar {
 
     // currentValue / maxValue = progress
     private double currentValue;
-    // int between 0 and barWidth indicating how close to being done we are
-    private int progress;
+    // number between 0 and barWidth indicating how close to being done we are
+    private double progress;
 
     // When true, will throw an exception if update() is called after progress
     // has already reached 100. If false, update() will simply do nothing.
@@ -77,9 +78,11 @@ public class ProgressBar {
 
         currentValue++;
 
+        double newestProgress = (currentValue / maxValue) * barWidth;
+
         // redraw if necessary
-        if ((currentValue / maxValue) * barWidth > progress) {
-            progress = (int) ((currentValue / maxValue) * barWidth);
+        if (donePercent(newestProgress) > donePercent(progress)) {
+            progress = ((currentValue / maxValue) * barWidth);
             draw();
         }
 
@@ -91,7 +94,12 @@ public class ProgressBar {
 
     }
 
+    private int donePercent(double progress) {
+        return (int) (progress / barWidth * 100);
+    }
+
     private void draw() {
+        int progress = (int) this.progress;
 
         // Generate string to fill bar
         StringBuilder bar = new StringBuilder();
@@ -102,7 +110,7 @@ public class ProgressBar {
             bar.append(BAR_INCOMPLETE_CHAR);
         }
 
-        int donePercentage = (int) ((double) progress / barWidth * 100.0);
+        int donePercentage = donePercent(this.progress);
         output.printf(BAR_FORMAT, bar.toString(), donePercentage);
     }
 
@@ -117,9 +125,10 @@ public class ProgressBar {
     }
 
     public static void main(String[] args) {
-        ProgressBar test = new ProgressBar(System.out, 70, 70);
+        // Just a little sample code
+        ProgressBar test = new ProgressBar(System.out, 70, 100);
 
-        for (int i = 0; i < 70; i++) {
+        for (int i = 0; i < 100; i++) {
             try {
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
