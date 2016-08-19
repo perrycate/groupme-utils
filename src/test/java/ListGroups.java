@@ -1,7 +1,7 @@
 import java.io.File;
 import java.util.Scanner;
 
-import me.perrycate.groupmeutils.Dump;
+import me.perrycate.groupmeutils.Dumper;
 import me.perrycate.groupmeutils.api.Client;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;

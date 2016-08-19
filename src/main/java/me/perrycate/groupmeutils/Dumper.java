@@ -22,13 +22,13 @@ import me.perrycate.groupmeutils.data.Message;
 /**
  * Dumps a groupme group to a text file. Ignores images for now.
  */
-public class Dump {
+public class Dumper {
     private Client groupme;
     private String groupId;
     private String lastMessageId;
     private Group group;
 
-    public Dump(Client groupmeClient, Group group) {
+    public Dumper(Client groupmeClient, Group group) {
         this.groupme = groupmeClient;
         this.group = group;
         this.groupId = group.getId();
@@ -36,33 +36,10 @@ public class Dump {
     }
 
     /**
-     * Dumps the group to output starting at the specified lastMessageId. The
-     * messages will appear in the file in reverse order, with most recent at
-     * the top.
-     */
-    public void dumpFromBottom(File output) {
-        PrintWriter out = getPrinter(output);
-        GroupMessages messages;
-        messages = groupme.getMessagesBefore(groupId, lastMessageId);
-
-        int totalMessages = messages.getCount();
-        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
-            messages = groupme.getMessagesBefore(groupId, lastMessageId);
-            int length = messages.getMessages().length;
-            int j;
-            for (j = 0; j < length; j++) {
-                print(messages.getMessage(j), out);
-            }
-            lastMessageId = messages.getMessage(j - 1).getId();
-        }
-        out.close();
-    }
-
-    /**
      * Dumps the group to output in order, with most recent messages appearing
      * at the bottom.
      */
-    public void dumpFromTop(File outputFile) {
+    public void dump(File outputFile) {
         // Get each message starting from bottom, write each chunk of 100
         // messages to an individual file, then concatenate them.
         // We do this to avoid attempting to store the entire group in memory
@@ -119,7 +96,7 @@ public class Dump {
      *
      * TODO this method breaks if inputFile and outputFile are the same
      */
-    public int appendFromTop(File inputFile, File outputFile) {
+    public int append(File inputFile, File outputFile) {
 
         PrintWriter output = getPrinter(outputFile);
         FileReader r;
@@ -194,7 +171,7 @@ public class Dump {
      * the chunks created, in the order that they were created. (list[0] was the
      *  first chunk created, and so forth.)
      */
-    public List<File> dumpToChunks(Path outputFolder) {
+    private List<File> dumpToChunks(Path outputFolder) {
 
         ArrayList<File> chunksWritten = new ArrayList<File>();
         //TODO: BUG: The first chunk will be missing the latest message to the
