@@ -177,7 +177,7 @@ public class ChunkStorage implements Iterable<byte[]>, Closeable {
      * NoSuchElementException if the deque is empty.
      */
     public byte[] removeLast() {
-        return readThenDelete(chunks.removeFirst());
+        return readThenDelete(chunks.removeLast());
     }
 
     public int size() {
