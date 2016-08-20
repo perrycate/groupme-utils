@@ -1,6 +1,7 @@
 package me.perrycate.groupmeutils;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -226,7 +227,8 @@ public class ChunkStorage implements Iterable<byte[]>, Closeable {
     }
 
     private Path getNewChunk() {
-        String name = baseDir.toString() + "/" + chunksAdded + FILE_EXT;
+        String name = baseDir.toString() + File.separator + chunksAdded
+                + FILE_EXT;
         chunksAdded++;
         return Paths.get(name);
     }
