@@ -70,8 +70,9 @@ public class Client {
     }
 
     /**
-     * Returns a group of the 100 most recent messages in group with groupId
-     * after the message with afterId.
+     * Returns a GroupMessages object containing the 100 messages immediately
+     * following the message with id afterId, ordered by createdAt ascending.
+     * (The oldest message will be at index 0)
      */
     public GroupMessages getMessagesAfter(String groupId, String afterId) {
         String target = "/groups/" + groupId + "/messages";
@@ -89,9 +90,12 @@ public class Client {
         return gson.fromJson(reader, GroupMessages.class);
     }
 
+    // TODO getMessage
+
     /**
-     * Returns a group of the 100 most recent messages in group with groupId
-     * after the message with afterId. The message at index 0 is the most recent.
+     * Returns a GroupMessages object containing the 100 messages immediately
+     * preceding the message with id beforeId, ordered by createdAt descending. 
+     * (The newest message message will be at index 0)
      */
     public GroupMessages getMessagesBefore(String groupId, String beforeId) {
         String target = "/groups/" + groupId + "/messages";
