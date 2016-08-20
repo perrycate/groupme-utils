@@ -70,9 +70,9 @@ public class Client {
     }
 
     /**
-     * Returns a GroupMessages object containing the 100 messages immediately
-     * following the message with id afterId, ordered by createdAt ascending.
-     * (The oldest message will be at index 0)
+     * Returns a GroupMessages object containing the Client.MAX_MESSAGES
+     * messages immediately following the message with id afterId, ordered by
+     * createdAt ascending. (The oldest message will be at index 0)
      */
     public GroupMessages getMessagesAfter(String groupId, String afterId) {
         String target = "/groups/" + groupId + "/messages";
@@ -80,6 +80,7 @@ public class Client {
         // get request url
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("after_id", afterId);
+        params.put("limit", "" + MAX_MESSAGES);
         URL url = createUrl(target, params);
 
         // Make request
@@ -93,9 +94,9 @@ public class Client {
     // TODO getMessage
 
     /**
-     * Returns a GroupMessages object containing the 100 messages immediately
-     * preceding the message with id beforeId, ordered by createdAt descending. 
-     * (The newest message message will be at index 0)
+     * Returns a GroupMessages object containing the Client.MAX_MESSAGES
+     * messages immediately preceding the message with id beforeId, ordered by
+     * createdAt descending. (The newest message message will be at index 0)
      */
     public GroupMessages getMessagesBefore(String groupId, String beforeId) {
         String target = "/groups/" + groupId + "/messages";
