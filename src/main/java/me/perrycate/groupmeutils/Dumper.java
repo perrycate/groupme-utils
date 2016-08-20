@@ -1,17 +1,24 @@
 package me.perrycate.groupmeutils;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import me.perrycate.groupmeutils.api.Client;
@@ -25,63 +32,76 @@ import me.perrycate.groupmeutils.data.Message;
 public class Dumper {
     private Client groupme;
     private String groupId;
-    private String lastMessageId;
     private Group group;
+
+    // TODO let client change this
+    private static String ENCODING = "UTF-8";
 
     public Dumper(Client groupmeClient, Group group) {
         this.groupme = groupmeClient;
         this.group = group;
         this.groupId = group.getId();
-        this.lastMessageId = group.getLastMessageId();
     }
 
     /**
      * Dumps the group to output in order, with most recent messages appearing
      * at the bottom.
      */
-    public void dump(File outputFile) {
-        // Get each message starting from bottom, write each chunk of 100
-        // messages to an individual file, then concatenate them.
-        // We do this to avoid attempting to store the entire group in memory
-        // while still not duplicating any network calls.
+    public void dump(Path outputFile) {
+        // Get each message starting from bottom, then concatenate them.
+        // We use hold messages in groups of 100 in ChunkStorage to avoid
+        // attempting to store the entire group in memory while still not
+        // duplicating any network calls.
 
-        // Get temporary directory to store chunks
-        Path tempdir;
-        try {
-            tempdir = Files.createTempDirectory("groupme-dump-");
-        } catch (IOException e1) {
-            throw new RuntimeException(e1);
+        // TODO check that outputFile does not already exist, and if it does
+        // prompt user to confirm they want to overwrite it. (Then actually
+        // overwrite it, currently we just append.)
+        // Actually, that'd be a good way to check to see whether we should use
+        // dump() or append(), if we did that check elsewhere. We'd have to have
+        // better error handling if the file doesn't match the group, the file
+        // is ill-formated (or just plain not a log file), etc, in case the user
+        // just accidentally specifies appending at some random-ass file we know
+        // nothing about.
+
+        // TODO get first message
+
+        // TODO could return int ie number of messages written (or lines? is
+        // there a difference?)
+
+        // TODO could just use Message[] instead of GroupMessages, looks nicer is all
+
+        // Get each message in groups of Client.MAX_MESSAGES. Store in chunks to
+        // conserve memory.
+        ChunkStorage storage = new ChunkStorage();
+        int totalMessages = group.getMessageCount();
+        String lastMessageId = group.getLastMessageId();
+        GroupMessages messages;
+        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
+            messages = groupme.getMessagesBefore(groupId, lastMessageId);
+            writeChunk(messages.getMessages(), storage);
+            lastMessageId = messages
+                    .getMessage(messages.getMessages().length - 1).getId();
         }
 
-        // Dump groupme to a series of mini-files, aka chunks
-        List<File> chunks = dumpToChunks(tempdir);
-
         // Concatenate each chunk into a single log
-        try {
-            FileOutputStream output = new FileOutputStream(outputFile);
-            for (int i = chunks.size() - 1; i >= 0; i--) {
-                Path file = chunks.get(i).toPath();
-                output.write(Files.readAllBytes(file));
-                // Delete chunk after reading
-                Files.delete(file);
+        try (
+                OutputStream o = Files.newOutputStream(outputFile,
+                        StandardOpenOption.APPEND, StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE);
+
+                BufferedOutputStream output = new BufferedOutputStream(o);) {
+
+            while (storage.size() != 0) {
+                output.write(storage.removeFirst());
             }
-            output.close();
+
+            storage.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        // Delete temporary directory. Comment this out for debugging help.
-        try {
-            Files.delete(tempdir);
-        } catch (IOException e) {
-            System.err.println(e);
-            System.out.println(
-                    "WARNING: Failed to delete temporary directory!"
-                            + " Maybe not all messages were written to the log?");
-        }
-        //*/
-
     }
+    //*/
 
     /**
      * Scans the groupme for any new messages ocurring after the last message
@@ -91,141 +111,137 @@ public class Dumper {
      * dumpFromTop or appendFromTop call, and thus maintains the same output
      * format.
      * 
-     * Returns the number of lines appended, or -1 if inputFile could not be 
-     * opened.
-     *
-     * TODO this method breaks if inputFile and outputFile are the same
      */
-    public int append(File inputFile, File outputFile) {
+    public void append(Path sourceFile) {
+        // TODO I still think this could share more code with dump().
 
-        PrintWriter output = getPrinter(outputFile);
+        // TODO we could in fact share more code with dump if we only
+        // made note of the last message in the group, but then got messages in
+        // the same order as dump() (bottom-up) and just stop when we reach the
+        // message Id we made note of. The downside is that if people add to
+        // the chat while append() is running, these messages won't be added.
+        // On the other hand though, this would eliminate the concern of the
+        // message count being innacurate for the same reason, so maybe that's
+        // a good thing?
+
+        // TODO return lines changed.
+
         FileReader r;
         try {
-            r = new FileReader(inputFile);
+            r = new FileReader(sourceFile.toFile());
         } catch (FileNotFoundException e) {
-            //TODO throw exception instead
-            return -1;
+            // TODO could recover from this easily, ie just create file or call
+            // dump. (See similar giant-ass TODO in dump method)
+            System.err
+                    .println("FATAL: Could not find file " + sourceFile + "!");
+            return;
         }
-        BufferedReader reader = new BufferedReader(r);
 
         // Find the last message in the file. Ideally there is a faster way to
         // do this other than reading through it line by line from the top, but
         // I have not found it yet.
+        // TODO there certainly must be, especially now that we don't have to
+        // copy things into new file, we just need to get the last line in file.
         String lastLine = "";
         String tmp = "";
-        try { // TODO Almost certainly a better way to structure this
+        try (BufferedReader reader = new BufferedReader(r);) {
             tmp = reader.readLine();
+
+            while (tmp != null) {
+                lastLine = tmp;
+                tmp = reader.readLine();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-        while (tmp != null) {
-            lastLine = tmp;
-            output.println(lastLine); // Copy existing messages into new file
-            try {
-                tmp = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
-        try {
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        // TODO if no id found, should tell that to the user.
 
         // get ID of last message in file
-        String lastIdInFile = readIdFromLine(lastLine);
+        String firstMessageId = readIdFromLine(lastLine);
 
-        // Append new messages to group
-        // TODO we shouldn't assume that it's not a giant group of messages,
-        // that is, we should dump these to chunks as in the regular dumpFromTop
-        // method. First though, we need more robust dumpToChunk methods.
-        GroupMessages messageGroup;
-        messageGroup = groupme.getMessagesAfter(groupId, lastIdInFile);
-        int diffLines = 0;
-        while (messageGroup.getMessages().length > 0) {
-            Message[] messages = messageGroup.getMessages();
+        // Append new messages to group, storing messages in file chunks to
+        // avoid keeping them all in memory.
+        ChunkStorage storage = new ChunkStorage();
 
-            for (int j = 0; j < messages.length; j++) {
-                print(messages[j], output);
-                diffLines++;
+        // TODO in order to have a progress bar with this we need to know how
+        // many new messages there are. Have a number at the very bottom of the
+        // file containing the # of messages. When we append, provided that there
+        // is no new line after the number, we can overwrite it with '\r', then
+        // after appending all the messages we can append our new count.
+        // (be aware that count may have changed while we were appending stuff.)
+        GroupMessages messages = groupme.getMessagesAfter(groupId,
+                firstMessageId);
+        while (messages.getMessages().length > 0) {
+
+            for (int i = 0; i < messages.getMessages().length; i++) {
+                System.out.println(format(messages.getMessage(i)));
+            }
+            System.out.println();
+
+            // Have to reverse message order since getMessagesAfter's order is
+            // opposite to getMessagesBefore. Inconvenient, but I'm trying to
+            // keep it consistent with GroupMe's API for now, for better or worse.
+            List<Message> m = Arrays.asList(messages.getMessages());
+
+            //  WARNING/TODO: This also changes order of messages in the
+            // GroupMessagesObject. This is a bug, GroupMessages should've
+            // devensively copied. NOTE that fixing the bug will require change
+            // later on here since the current code is currently working around
+            // messages being reversed.
+            Collections.reverse(m);
+            writeChunk(m.toArray(new Message[0]), storage);
+
+            // Remember, we reversed the array
+            firstMessageId = messages.getMessage(0).getId();
+            // Different from dump(): this gets Messages AFTER messageId
+            messages = groupme.getMessagesAfter(groupId, firstMessageId);
+        }
+
+        // Concatenate each chunk into a single log
+        try (
+                OutputStream o = Files.newOutputStream(sourceFile,
+                        StandardOpenOption.APPEND, StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE);
+
+                BufferedOutputStream output = new BufferedOutputStream(o);) {
+
+            while (storage.size() != 0) {
+                // Different from dump(): this removes from the first, not last  
+                output.write(storage.removeLast());
             }
 
-            lastIdInFile = messages[messages.length - 1].getId();
-
-            messageGroup = groupme.getMessagesAfter(groupId, lastIdInFile);
-        }
-        output.close();
-
-        return diffLines;
-        //*/
-    }
-
-    /**
-     * Dumps the group to a specified outputFolder. Messages will be dumped to a
-     * series of .txt files, each of length 100 with the most recent message at
-     * the bottom. The .txt files are numbered, so the most recent 100 messages
-     * in the group are in 1.txt, the ones immediately preceding those are in
-     * 2.txt, and so for. Otherwise, return a list of Path objects pointing to
-     * the chunks created, in the order that they were created. (list[0] was the
-     *  first chunk created, and so forth.)
-     */
-    private List<File> dumpToChunks(Path outputFolder) {
-
-        ArrayList<File> chunksWritten = new ArrayList<File>();
-        //TODO: BUG: The first chunk will be missing the latest message to the
-        // group. This is because the getMessagesBefore excludes lastMessageId.  
-        // Best fix I can think of is making a separate getMessages method
-        // that just gets the most recent messages, and using that here (just in
-        // this one line) instead of getMessagesBefore
-        GroupMessages messages = groupme.getMessagesBefore(groupId,
-                lastMessageId);
-
-        // Write each group of 100 messages from the server to a separate
-        // file in outputFolder
-        int totalMessages = messages.getCount();
-        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
-            messages = groupme.getMessagesBefore(groupId, lastMessageId);
-            File newFile = new File(outputFolder + "/" + chunksWritten.size() +
-                    ".txt");
-            writeChunk(messages, newFile);
-            chunksWritten.add(newFile);
+            storage.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        return chunksWritten;
-
     }
+    //*/
 
     /**
      * Writes messages to specified chunk. (A chunk is just a short text file
      * containing 100 or less messages in text format.) 
      */
-    private void writeChunk(GroupMessages messages, File chunk) {
-        PrintWriter out = getPrinter(chunk);
+    private void writeChunk(Message[] messages, ChunkStorage storage) {
 
-        int length = messages.getMessages().length;
-        for (int j = length - 1; j >= 0; j--) {
-            print(messages.getMessage(j), out);
+        int length = messages.length;
+
+        try (ByteArrayOutputStream chunk = new ByteArrayOutputStream()) {
+            // concatenate each message into a series of bytes in a chunk
+            for (int i = length - 1; i >= 0; i--) {
+                Message message = messages[i];
+                String text = format(message) + '\n';
+                byte[] textInBytes = text.getBytes(Charset.forName(ENCODING));
+                chunk.write(textInBytes);
+            }
+
+            // Write chunk to storage
+            storage.addFirst(chunk.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        lastMessageId = messages.getMessage(length - 1).getId();
-        out.close();
-    }
 
-    /**
-     * Returns a PrintWriter to the specified file
-     */
-    private PrintWriter getPrinter(File file) {
-
-        try {
-            return new PrintWriter(file);
-        } catch (FileNotFoundException e) {
-            // This should never happen
-            System.err.println("FATAL: Failed to open file " + file.getName()
-                    + " for writing.");
-            System.exit(1);
-            return null;
-        }
     }
 
     /**
@@ -243,13 +259,6 @@ public class Dumper {
                     + message.getName() + ": "
                     + message.getText();
         }
-    }
-
-    /**
-     * Prints message to a printwriter in text format.
-     */
-    private void print(Message message, PrintWriter output) {
-        output.println(format(message));
     }
 
     /**
