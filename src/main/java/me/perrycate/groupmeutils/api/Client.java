@@ -137,10 +137,19 @@ public class Client {
      * Likes the given message. Returns true if successful, false otherwise.
      */
     public boolean likeMessage(Message m) {
-        String messageid = m.getId();
+        String messageId = m.getId();
         String groupId = m.getGroupId();
 
-        URL url = createUrl("/messages/" + groupId + "/" + messageid + "/like");
+        return likeMessage(groupId, messageId);
+    }
+
+    /**
+     * Likes the message with the given messageId. Returns true if successful,
+     * false otherwise.
+     */
+    public boolean likeMessage(String groupId, String messageId) {
+
+        URL url = createUrl("/messages/" + groupId + "/" + messageId + "/like");
         InputStream result = makePOSTRequest(url);
 
         // Probably a better way to check for success/failure than this.
