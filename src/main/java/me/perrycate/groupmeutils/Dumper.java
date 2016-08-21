@@ -174,11 +174,6 @@ public class Dumper {
                 firstMessageId);
         while (messages.getMessages().length > 0) {
 
-            for (int i = 0; i < messages.getMessages().length; i++) {
-                System.out.println(format(messages.getMessage(i)));
-            }
-            System.out.println();
-
             // Have to reverse message order since getMessagesAfter's order is
             // opposite to getMessagesBefore. Inconvenient, but I'm trying to
             // keep it consistent with GroupMe's API for now, for better or worse.
