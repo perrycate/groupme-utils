@@ -1,3 +1,4 @@
+package me.perrycate.groupmeutils.examples;
 import java.io.File;
 import java.util.Scanner;
 
