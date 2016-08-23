@@ -243,6 +243,9 @@ public class Dumper {
      * Returns message in text format
      */
     private String format(Message message) {
+        // TODO This is lazy and wrong. Just because text is null doesn't mean
+        // there's a picture, and just because there is text doesn't mean that
+        // there's not also a picture.
         if (message.getText() == null) {
             return message.getId() + " | "
                     + message.getCreatedAt() + " | "
