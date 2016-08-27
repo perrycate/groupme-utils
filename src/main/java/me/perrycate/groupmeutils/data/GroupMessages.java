@@ -9,6 +9,12 @@ package me.perrycate.groupmeutils.data;
  */
 public class GroupMessages {
 
+    /**
+     * The maximum number of messages that GroupMe will send a GroupMessages
+     * object with.
+     */
+    public static final int MAX_MESSAGES = 100;
+
     private Message[] messages;
     private int count; // Total number of messages in the group.
 

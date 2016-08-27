@@ -32,11 +32,6 @@ public class GroupMe {
     private static final String BASE_URL = "https://api.groupme.com/v3";
     private static final String CHARSET = "UTF-8";
 
-    // GroupMe Api Constants
-    /** The maximum number of messages that can be retrieved from a group in a
-     * single network request. */
-    public static final int MAX_MESSAGES = 100;
-
     private final String apiToken;
     private final Gson gson; // used for deserializing things
 
@@ -80,7 +75,7 @@ public class GroupMe {
         // get request url
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("after_id", afterId);
-        params.put("limit", "" + MAX_MESSAGES);
+        params.put("limit", "" + GroupMessages.MAX_MESSAGES);
         URL url = createUrl(target, params);
 
         // Make request
@@ -94,7 +89,7 @@ public class GroupMe {
     // TODO getMessage
 
     /**
-     * Returns a GroupMessages object containing the GroupMe.MAX_MESSAGES
+     * Returns a GroupMessages object containing the GroupMessages.MAX_MESSAGES
      * messages immediately preceding the message with id beforeId, ordered by
      * createdAt descending. (The newest message message will be at index 0)
      */
@@ -104,7 +99,7 @@ public class GroupMe {
         // get request url
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("before_id", beforeId);
-        params.put("limit", "" + MAX_MESSAGES);
+        params.put("limit", "" + GroupMessages.MAX_MESSAGES);
         URL url = createUrl(target, params);
 
         // Make request

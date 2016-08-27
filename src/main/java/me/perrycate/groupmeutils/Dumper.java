@@ -70,13 +70,13 @@ public class Dumper {
 
         // TODO could just use Message[] instead of GroupMessages, looks nicer is all
 
-        // Get each message in groups of GroupMe.MAX_MESSAGES. Store in chunks to
-        // conserve memory.
+        // Get each message in groups of GroupMessages.MAX_MESSAGES. Store in
+        // chunks to conserve memory.
         ChunkStorage storage = new ChunkStorage();
         int totalMessages = group.getMessageCount();
         String lastMessageId = group.getLastMessageId();
         GroupMessages messages;
-        for (int i = 0; i < totalMessages; i += GroupMe.MAX_MESSAGES) {
+        for (int i = 0; i < totalMessages; i += GroupMessages.MAX_MESSAGES) {
             messages = groupme.getMessagesBefore(groupId, lastMessageId);
             writeChunk(messages.getMessages(), storage);
             lastMessageId = messages
