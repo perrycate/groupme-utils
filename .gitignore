@@ -1,6 +1,7 @@
 .classpath
 .project
 .settings/
+*.txt
 /target/
 /test/
 /src/test/
