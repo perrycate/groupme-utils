@@ -3,7 +3,7 @@ import java.io.File;
 import java.util.Scanner;
 
 import me.perrycate.groupmeutils.Dumper;
-import me.perrycate.groupmeutils.api.Client;
+import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 
@@ -18,7 +18,7 @@ public class ListGroups {
         String token = s.nextLine();
         System.out.println("Fetching groups...");
 
-        Client groupme = new Client(token);
+        GroupMe groupme = new GroupMe(token);
         Group[] groups = groupme.getGroups();
 
         for (int i = 0; i < groups.length; i++) {

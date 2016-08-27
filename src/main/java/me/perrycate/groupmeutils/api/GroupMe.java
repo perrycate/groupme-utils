@@ -27,7 +27,7 @@ import me.perrycate.groupmeutils.data.GroupMessages;
  * Contains useful methods for interacting with the GroupMe Api that return
  * serialized objects from the groupmeutils.data package.
  */
-public class Client {
+public class GroupMe {
     // HTTP related constants
     private static final String BASE_URL = "https://api.groupme.com/v3";
     private static final String CHARSET = "UTF-8";
@@ -40,7 +40,7 @@ public class Client {
     private final String apiToken;
     private final Gson gson; // used for deserializing things
 
-    public Client(String apiToken) {
+    public GroupMe(String apiToken) {
         this.apiToken = apiToken;
 
         // Register deserializers
@@ -70,7 +70,7 @@ public class Client {
     }
 
     /**
-     * Returns a GroupMessages object containing the Client.MAX_MESSAGES
+     * Returns a GroupMessages object containing the GroupMe.MAX_MESSAGES
      * messages immediately following the message with id afterId, ordered by
      * createdAt ascending. (The oldest message will be at index 0)
      */
@@ -94,7 +94,7 @@ public class Client {
     // TODO getMessage
 
     /**
-     * Returns a GroupMessages object containing the Client.MAX_MESSAGES
+     * Returns a GroupMessages object containing the GroupMe.MAX_MESSAGES
      * messages immediately preceding the message with id beforeId, ordered by
      * createdAt descending. (The newest message message will be at index 0)
      */

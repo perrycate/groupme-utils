@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import me.perrycate.groupmeutils.api.Client;
+import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 import me.perrycate.groupmeutils.data.Message;
@@ -30,14 +30,14 @@ import me.perrycate.groupmeutils.data.Message;
  * Dumps a groupme group to a text file. Ignores images for now.
  */
 public class Dumper {
-    private Client groupme;
+    private GroupMe groupme;
     private String groupId;
     private Group group;
 
     // TODO let client change this
     private static String ENCODING = "UTF-8";
 
-    public Dumper(Client groupmeClient, Group group) {
+    public Dumper(GroupMe groupmeClient, Group group) {
         this.groupme = groupmeClient;
         this.group = group;
         this.groupId = group.getId();
@@ -70,13 +70,13 @@ public class Dumper {
 
         // TODO could just use Message[] instead of GroupMessages, looks nicer is all
 
-        // Get each message in groups of Client.MAX_MESSAGES. Store in chunks to
+        // Get each message in groups of GroupMe.MAX_MESSAGES. Store in chunks to
         // conserve memory.
         ChunkStorage storage = new ChunkStorage();
         int totalMessages = group.getMessageCount();
         String lastMessageId = group.getLastMessageId();
         GroupMessages messages;
-        for (int i = 0; i < totalMessages; i += Client.MAX_MESSAGES) {
+        for (int i = 0; i < totalMessages; i += GroupMe.MAX_MESSAGES) {
             messages = groupme.getMessagesBefore(groupId, lastMessageId);
             writeChunk(messages.getMessages(), storage);
             lastMessageId = messages

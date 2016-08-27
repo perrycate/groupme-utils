@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 
 import me.perrycate.groupmeutils.Dumper;
-import me.perrycate.groupmeutils.api.Client;
+import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 
@@ -18,7 +18,7 @@ public class TestDump {
         String token = "YOUR API TOKEN HERE";
         String groupId = "GROUP ID HERE";
 
-        Client groupme = new Client(token);
+        GroupMe groupme = new GroupMe(token);
         Group group = groupme.getGroup(groupId);
 
         Dumper dumper = new Dumper(groupme, group);
