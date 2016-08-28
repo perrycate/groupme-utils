@@ -3,6 +3,7 @@ package me.perrycate.groupmeutils;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.Console;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.data.Group;
@@ -35,6 +37,7 @@ public class Dumper {
     private Group group;
 
     private static String ENCODING = "UTF-8";
+    private static int LINE_WIDTH = 72; // Used for progress bars
 
     public Dumper(GroupMe groupmeClient, Group group) {
         this.groupme = groupmeClient;
@@ -42,11 +45,83 @@ public class Dumper {
         this.groupId = group.getId();
     }
 
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+
+        // User auth
+        System.out.println("Please enter your GroupMe API Token: ");
+        String token = s.nextLine();
+        GroupMe api = new GroupMe(token);
+
+        // Group Selection
+        System.out.println("Fetching groups list...");
+        Group[] groups = api.getGroups();
+        for (int i = 0; i < groups.length; i++) {
+            System.out.format("[%d] %s\n", i, groups[i].getName());
+        }
+        System.out.print("Please select a group to dump: ");
+        Group selectedGroup = groups[s.nextInt()];
+        System.out.println("Selected \"" + selectedGroup.getName() + "\".");
+
+        // Initialize dumper
+        Dumper dumper = new Dumper(api, selectedGroup);
+
+        // Skip newline
+        s.nextLine();
+
+        // Get file to use, determine if we're writing a new one or appending
+        System.out.print("Enter a file name: ");
+        File fileToWrite = new File(s.nextLine());
+        if (fileToWrite.isFile()) {
+            // Append if applicable
+            System.out
+                    .println("File already exists. Append to this file? [Y/n]");
+            String response = s.nextLine();
+
+            if (response.toLowerCase().trim().startsWith("n")) {
+                System.out.println("Fine then. Exiting...");
+                s.close();
+                return;
+            }
+
+            // Append
+            long startTime = System.currentTimeMillis();
+            // int messagesAdded = dumper.append(fileToWrite);
+            dumper.append(fileToWrite);
+            long elapsedTime = System.currentTimeMillis() - startTime;
+
+            // Exit
+            System.out.format("Completed in %d seconds. Goodbye!",
+                    (int) (elapsedTime / 1000 + .5));
+
+        } else {
+            // Dump otherwise.
+            System.out.println("Create new file " + fileToWrite + "? [Y/n]");
+            String response = s.nextLine();
+
+            if (response.toLowerCase().trim().startsWith("n")) {
+                System.out.println("Fine then. Exiting...");
+                s.close();
+                return;
+            }
+            // Append
+            long startTime = System.currentTimeMillis();
+            int messagesDumped = dumper.dump(fileToWrite);
+            long elapsedTime = System.currentTimeMillis() - startTime;
+
+            // Exit
+            System.out.format("Dumped %d messages in %.1f seconds. Goodbye!",
+                    messagesDumped, (double) (elapsedTime / 1000));
+
+        }
+        s.close();
+    }
+
     /**
      * Dumps the group to output in order, with most recent messages appearing
      * at the bottom.
      */
-    public void dump(Path outputFile) {
+    public int dump(File outputFile) {
         // Get each message starting from bottom, then concatenate them.
         // We use hold messages in groups of 100 in ChunkStorage to avoid
         // attempting to store the entire group in memory while still not
@@ -70,16 +145,21 @@ public class Dumper {
         int totalMessages = group.getMessageCount();
         String lastMessageId = group.getLastMessageId();
         GroupMessages messages;
+
+        ProgressBar bar = new ProgressBar(System.out, LINE_WIDTH,
+                totalMessages / GroupMessages.MAX_MESSAGES);
+
         for (int i = 0; i < totalMessages; i += GroupMessages.MAX_MESSAGES) {
             messages = groupme.getMessagesBefore(groupId, lastMessageId);
             writeChunk(messages.getMessages(), storage);
             lastMessageId = messages
                     .getMessage(messages.getMessages().length - 1).getId();
+            bar.update();
         }
 
         // Concatenate each chunk into a single log
         try (
-                OutputStream o = Files.newOutputStream(outputFile,
+                OutputStream o = Files.newOutputStream(outputFile.toPath(),
                         StandardOpenOption.APPEND, StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE);
 
@@ -94,6 +174,7 @@ public class Dumper {
             throw new RuntimeException(e);
         }
 
+        return totalMessages;
     }
     //*/
 
@@ -106,7 +187,7 @@ public class Dumper {
      * format.
      * 
      */
-    public void append(Path sourceFile) {
+    public void append(File sourceFile) {
 
         // TODO we could in fact share more code with dump if we only
         // made note of the last message in the group, but then got messages in
@@ -119,7 +200,7 @@ public class Dumper {
 
         FileReader r;
         try {
-            r = new FileReader(sourceFile.toFile());
+            r = new FileReader(sourceFile);
         } catch (FileNotFoundException e) {
             System.err
                     .println("FATAL: Could not find file " + sourceFile + "!");
@@ -175,7 +256,7 @@ public class Dumper {
 
         // Concatenate each chunk into a single log
         try (
-                OutputStream o = Files.newOutputStream(sourceFile,
+                OutputStream o = Files.newOutputStream(sourceFile.toPath(),
                         StandardOpenOption.APPEND, StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE);
 

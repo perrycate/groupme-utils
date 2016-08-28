@@ -23,7 +23,7 @@ public class TestDump {
 
         Dumper dumper = new Dumper(groupme, group);
 
-        dumper.dump(Paths.get("testdump.txt"));
+        dumper.dump(new File("testdump.txt"));
 
         System.out.println("Complete");
     }

@@ -25,7 +25,7 @@ public class Append {
 
         Dumper dumper = new Dumper(groupme, group);
 
-        dumper.append(Paths.get("testfile.txt"));
+        dumper.append(new File("testfile.txt"));
 
         System.out.println("Complete");
     }
