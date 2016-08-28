@@ -34,7 +34,6 @@ public class Dumper {
     private String groupId;
     private Group group;
 
-    // TODO let client change this
     private static String ENCODING = "UTF-8";
 
     public Dumper(GroupMe groupmeClient, Group group) {
@@ -62,11 +61,6 @@ public class Dumper {
         // is ill-formated (or just plain not a log file), etc, in case the user
         // just accidentally specifies appending at some random-ass file we know
         // nothing about.
-
-        // TODO get first message
-
-        // TODO could return int ie number of messages written (or lines? is
-        // there a difference?)
 
         // TODO could just use Message[] instead of GroupMessages, looks nicer is all
 
@@ -113,7 +107,6 @@ public class Dumper {
      * 
      */
     public void append(Path sourceFile) {
-        // TODO I still think this could share more code with dump().
 
         // TODO we could in fact share more code with dump if we only
         // made note of the last message in the group, but then got messages in
@@ -124,14 +117,10 @@ public class Dumper {
         // message count being innacurate for the same reason, so maybe that's
         // a good thing?
 
-        // TODO return lines changed.
-
         FileReader r;
         try {
             r = new FileReader(sourceFile.toFile());
         } catch (FileNotFoundException e) {
-            // TODO could recover from this easily, ie just create file or call
-            // dump. (See similar giant-ass TODO in dump method)
             System.err
                     .println("FATAL: Could not find file " + sourceFile + "!");
             return;
@@ -163,13 +152,6 @@ public class Dumper {
         // Append new messages to group, storing messages in file chunks to
         // avoid keeping them all in memory.
         ChunkStorage storage = new ChunkStorage();
-
-        // TODO in order to have a progress bar with this we need to know how
-        // many new messages there are. Have a number at the very bottom of the
-        // file containing the # of messages. When we append, provided that there
-        // is no new line after the number, we can overwrite it with '\r', then
-        // after appending all the messages we can append our new count.
-        // (be aware that count may have changed while we were appending stuff.)
         GroupMessages messages = groupme.getMessagesAfter(groupId,
                 firstMessageId);
         while (messages.getMessages().length > 0) {
@@ -179,11 +161,9 @@ public class Dumper {
             // keep it consistent with GroupMe's API for now, for better or worse.
             List<Message> m = Arrays.asList(messages.getMessages());
 
-            //  WARNING/TODO: This also changes order of messages in the
-            // GroupMessagesObject. This is a bug, GroupMessages should've
-            // devensively copied. NOTE that fixing the bug will require change
-            // later on here since the current code is currently working around
-            // messages being reversed.
+            //  WARNING/TODO/NOTE: fixing the "GroupMessages not being defensively
+            // copied bug" will require change here, since the current code is
+            // working around messages being reversed.
             Collections.reverse(m);
             writeChunk(m.toArray(new Message[0]), storage);
 
@@ -243,9 +223,6 @@ public class Dumper {
      * Returns message in text format
      */
     private String format(Message message) {
-        // TODO This is lazy and wrong. Just because text is null doesn't mean
-        // there's a picture, and just because there is text doesn't mean that
-        // there's not also a picture.
         if (message.getText() == null) {
             return message.getId() + " | "
                     + message.getCreatedAt() + " | "
