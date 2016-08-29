@@ -4,7 +4,7 @@
 
   <groupId>me.perrycate.groupme-utils</groupId>
   <artifactId>groupme-utils</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.5</version>
   <packaging>jar</packaging>
 
   <name>groupme-utils</name>
@@ -33,6 +33,31 @@
         <target>1.8</target>
         <encoding>UTF-8</encoding>
       </configuration>
+    </plugin>
+    <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-jar-plugin</artifactId>
+      <version>3.0.2</version>
+       <configuration>
+         <archive>
+           <manifest>
+             <mainClass>me.perrycate.groupmeutils.Dumper</mainClass>
+           </manifest>
+         </archive>
+       </configuration>
+    </plugin>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-shade-plugin</artifactId>
+      <version>1.6</version>
+      <executions>
+        <execution>
+          <phase>package</phase>
+          <goals>
+            <goal>shade</goal>
+          </goals>
+        </execution>
+      </executions>
     </plugin>
   </plugins>
 </build>  
