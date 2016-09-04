@@ -2,6 +2,7 @@
 .project
 .settings/
 *.txt
+*.swp
 /target/
 /test/
 /src/test/
