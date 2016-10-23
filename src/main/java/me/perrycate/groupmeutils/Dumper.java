@@ -187,7 +187,7 @@ public class Dumper {
      * format.
      * 
      */
-    public void append(File sourceFile) {
+    public int append(File sourceFile) {
 
         // TODO we could in fact share more code with dump if we only
         // made note of the last message in the group, but then got messages in
@@ -204,7 +204,7 @@ public class Dumper {
         } catch (FileNotFoundException e) {
             System.err
                     .println("FATAL: Could not find file " + sourceFile + "!");
-            return;
+            return -1;
         }
 
         // Find the last message in the file. Ideally there is a faster way to
@@ -235,6 +235,9 @@ public class Dumper {
         ChunkStorage storage = new ChunkStorage();
         GroupMessages messages = groupme.getMessagesAfter(groupId,
                 firstMessageId);
+
+	int nrOfMessages = messages.getMessages().length;
+
         while (messages.getMessages().length > 0) {
 
             // Have to reverse message order since getMessagesAfter's order is
@@ -271,6 +274,8 @@ public class Dumper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+	return nrOfMessages;
 
     }
     //*/
