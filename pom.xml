@@ -4,7 +4,7 @@
 
   <groupId>me.perrycate.groupme-utils</groupId>
   <artifactId>groupme-utils</artifactId>
-  <version>0.5</version>
+  <version>0.5.1</version>
   <packaging>jar</packaging>
 
   <name>groupme-utils</name>

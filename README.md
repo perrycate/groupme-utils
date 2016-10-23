@@ -20,4 +20,4 @@ From the command line, in the base directory of this project:
 After building, the compiled .jar file will be located in the `target/` directory of this project.
 Run it with 
 
-    java -jar target/groupme-utils-0.5.jar
+    java -jar target/groupme-utils-0.5.1.jar
