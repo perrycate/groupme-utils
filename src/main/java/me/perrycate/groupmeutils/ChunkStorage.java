@@ -16,8 +16,8 @@ import java.util.Iterator;
  * reading and writing to be relatively slow, but memory usage will be low,
  * since we're not actually storing the Chunks in memory.
  * 
- * In other words, use this class when you have more data (in small pieces)
- * than you want to keep in memory at a time and are willing to pay a slight
+ * In other words, use this class when you have more data (in small pieces) than
+ * you want to keep in memory at a time and are willing to pay a slight
  * performance penalty for it.
  */
 public class ChunkStorage implements Iterable<byte[]>, Closeable {
@@ -32,7 +32,7 @@ public class ChunkStorage implements Iterable<byte[]>, Closeable {
     // Location where chunks will be stored
     private Path baseDir;
 
-    // Each Path is to a single chunk 
+    // Each Path is to a single chunk
     private ArrayDeque<Path> chunks;
 
     // Number of chunks ever added. We base chunk path names off this so that
@@ -90,7 +90,7 @@ public class ChunkStorage implements Iterable<byte[]>, Closeable {
     }
 
     /**
-     * Adds data chunk to the head of the deque. 
+     * Adds data chunk to the head of the deque.
      */
     public void addFirst(byte[] data) {
         Path chunk = getNewChunk();

@@ -42,8 +42,8 @@ public class ProgressBar {
 
     /**
      * Create and print an empty progress bar of width barWidth to output.
-     * maxValue is the number of times that update() must be called before
-     * the progress bar reaches 100%
+     * maxValue is the number of times that update() must be called before the
+     * progress bar reaches 100%
      */
     public ProgressBar(OutputStream output, int lineWidth, int maxValue) {
 
@@ -61,7 +61,7 @@ public class ProgressBar {
     }
 
     /**
-     * Updates the progressBar, redrawing if necessary 
+     * Updates the progressBar, redrawing if necessary
      */
     public void update() {
 
@@ -118,7 +118,7 @@ public class ProgressBar {
      * Will cause update() to throw an exception if it is called again after
      * progress has already reached 100%.
      * 
-     * Potentially useful for debugging client applications. 
+     * Potentially useful for debugging client applications.
      */
     public void enableExceptionOnExcessUpdate() {
         strictMode = true;

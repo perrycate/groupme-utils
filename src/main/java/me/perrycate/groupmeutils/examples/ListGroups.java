@@ -1,4 +1,5 @@
 package me.perrycate.groupmeutils.examples;
+
 import java.util.Scanner;
 
 import me.perrycate.groupmeutils.api.GroupMe;

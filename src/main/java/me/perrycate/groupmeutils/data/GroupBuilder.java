@@ -9,7 +9,8 @@ public class GroupBuilder {
 
     private String id;
     private String name;
-    private String type; // TODO this should be an enum, once I figure out how many types there are.
+    private String type; // TODO this should be an enum, once I figure out how
+                         // many types there are.
     private String description;
     private String imageUrl;
     private String creatorUserId;
@@ -25,7 +26,8 @@ public class GroupBuilder {
     // for example a preview object.
     private int messageCount;
     private String lastMessageId;
-    private Instant lastMessageCreatedAt; // Is this ever different from updatedAt?
+    private Instant lastMessageCreatedAt; // Is this ever different from
+                                          // updatedAt?
 
     public Group createGroup() {
         return new Group(id, name, type, description, imageUrl,

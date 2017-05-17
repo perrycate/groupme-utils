@@ -67,8 +67,7 @@ public class Dumper {
         File fileToWrite = new File(s.nextLine());
         if (fileToWrite.isFile()) {
             // Append if applicable
-            System.out
-                    .println("File already exists. Append to this file? [Y/n]");
+            System.out.println("File already exists. Append to this file? [Y/n]");
             String response = s.nextLine();
 
             if (response.toLowerCase().trim().startsWith("n")) {
@@ -130,7 +129,8 @@ public class Dumper {
         // just accidentally specifies appending at some random-ass file we know
         // nothing about.
 
-        // TODO could just use Message[] instead of GroupMessages, looks nicer is all
+        // TODO could just use Message[] instead of GroupMessages, looks nicer
+        // is all
 
         // Get each message in groups of GroupMessages.MAX_MESSAGES. Store in
         // chunks to conserve memory.
@@ -169,16 +169,16 @@ public class Dumper {
 
         return totalMessages;
     }
-    //*/
+    // */
 
     /**
-     * Scans the groupme for any new messages ocurring after the last message
-     * in inputFile, and appends new messages to the bottom.
-     * 
+     * Scans the groupme for any new messages ocurring after the last message in
+     * inputFile, and appends new messages to the bottom.
+     *
      * This method assumes that inputFile is the result of a previous
      * dumpFromTop or appendFromTop call, and thus maintains the same output
      * format.
-     * 
+     *
      */
     public int append(File sourceFile) {
 
@@ -195,8 +195,7 @@ public class Dumper {
         try {
             r = new FileReader(sourceFile);
         } catch (FileNotFoundException e) {
-            System.err
-                    .println("FATAL: Could not find file " + sourceFile + "!");
+            System.err.println("FATAL: Could not find file " + sourceFile + "!");
             return -1;
         }
 
@@ -229,16 +228,18 @@ public class Dumper {
         GroupMessages messages = groupme.getMessagesAfter(groupId,
                 firstMessageId);
 
-	int nrOfMessages = messages.getMessages().length;
+        int nrOfMessages = messages.getMessages().length;
 
         while (messages.getMessages().length > 0) {
 
             // Have to reverse message order since getMessagesAfter's order is
             // opposite to getMessagesBefore. Inconvenient, but I'm trying to
-            // keep it consistent with GroupMe's API for now, for better or worse.
+            // keep it consistent with GroupMe's API for now, for better or
+            // worse.
             List<Message> m = Arrays.asList(messages.getMessages());
 
-            //  WARNING/TODO/NOTE: fixing the "GroupMessages not being defensively
+            // WARNING/TODO/NOTE: fixing the "GroupMessages not being
+            // defensively
             // copied bug" will require change here, since the current code is
             // working around messages being reversed.
             Collections.reverse(m);
@@ -259,7 +260,7 @@ public class Dumper {
                 BufferedOutputStream output = new BufferedOutputStream(o);) {
 
             while (storage.size() != 0) {
-                // Different from dump(): this removes from the first, not last  
+                // Different from dump(): this removes from the first, not last
                 output.write(storage.removeLast());
             }
 
@@ -268,14 +269,14 @@ public class Dumper {
             throw new RuntimeException(e);
         }
 
-	return nrOfMessages;
+        return nrOfMessages;
 
     }
-    //*/
+    // */
 
     /**
      * Writes messages to specified chunk. (A chunk is just a short text file
-     * containing 100 or less messages in text format.) 
+     * containing 100 or less messages in text format.)
      */
     private void writeChunk(Message[] messages, ChunkStorage storage) {
 

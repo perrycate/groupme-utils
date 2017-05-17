@@ -16,9 +16,9 @@ public class GroupmeDeserializer {
      * Deserializers will sometimes recieve JSON directly from the groupme
      * server, (and thus the actual body is the value of a "response" element),
      * and sometimes as a call from a halfway-parsed other json object in the
-     * process of being deserialized. JSON directly from groupme's
-     * servers includes an "envelope" with some extra metadata like status code.
-     * This strips that information so we're working with the same JSON object
+     * process of being deserialized. JSON directly from groupme's servers
+     * includes an "envelope" with some extra metadata like status code. This
+     * strips that information so we're working with the same JSON object
      * regardless of source.
      */
     public JsonElement getResponse(JsonElement jsonElement) {
@@ -32,7 +32,7 @@ public class GroupmeDeserializer {
     }
 
     /**
-     * Returns the HTTP code associated with a response from the groupme servers 
+     * Returns the HTTP code associated with a response from the groupme servers
      */
     @SuppressWarnings("unused")
     private int getErrorCode(JsonElement json) {

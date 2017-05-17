@@ -37,7 +37,7 @@ public class GroupDeserializer extends GroupmeDeserializer
             g.setShareUrl(json.get("share_url").getAsString());
         }
 
-        //TODO this will be reworked later, see note in Group Class.
+        // TODO this will be reworked later, see note in Group Class.
         JsonObject messages = json.get("messages").getAsJsonObject();
         g.setMessageCount(messages.get("count").getAsInt());
         g.setLastMessageId(messages.get("last_message_id").getAsString());

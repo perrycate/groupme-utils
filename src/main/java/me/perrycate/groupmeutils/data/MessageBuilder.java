@@ -26,7 +26,8 @@ public class MessageBuilder {
 
     public MessageBuilder() {
         super();
-        system = true; // all the Groupme API docs have this set to true, though it
+        system = true; // all the Groupme API docs have this set to true, though
+                       // it
                        // doesn't actually say what it's for.
 
         // Everything else we leave null and set with setters below

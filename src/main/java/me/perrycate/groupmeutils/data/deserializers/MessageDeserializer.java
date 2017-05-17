@@ -34,7 +34,8 @@ public class MessageDeserializer extends GroupmeDeserializer
         m.setUserId(json.get("user_id").getAsString());
         m.setGroupId(json.get("group_id").getAsString());
         m.setName(json.get("name").getAsString());
-        if (!json.get("avatar_url").isJsonNull()) { // null if user is using default avatar
+        if (!json.get("avatar_url").isJsonNull()) { // null if user is using
+                                                    // default avatar
             m.setAvatarUrl(json.get("avatar_url").getAsString());
         }
         if (!json.get("text").isJsonNull()) { // could happen if only image sent
@@ -42,7 +43,7 @@ public class MessageDeserializer extends GroupmeDeserializer
         }
         m.setSystem(json.get("system").getAsBoolean());
 
-        // Set list of ids of people who liked this message 
+        // Set list of ids of people who liked this message
         JsonArray favoritesAsJson = json.get("favorited_by").getAsJsonArray();
         int length = favoritesAsJson.size();
         String[] favorites = new String[length];
