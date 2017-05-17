@@ -1,10 +1,8 @@
 package me.perrycate.groupmeutils.api;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -19,6 +17,7 @@ import me.perrycate.groupmeutils.data.deserializers.GroupArrayDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupMessagesDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.MessageDeserializer;
+import me.perrycate.groupmeutils.util.HTTP;
 
 /**
  * Contains useful methods for interacting with the GroupMe Api that return
@@ -53,7 +52,7 @@ public class GroupMe {
     public Group[] getGroups() {
         String target = "/groups";
 
-        InputStream resultStream = makeGETRequest(createUrl(target));
+        InputStream resultStream = HTTP.makeGETRequest(createUrl(target));
 
         Reader reader = new InputStreamReader(resultStream);
 
@@ -75,7 +74,7 @@ public class GroupMe {
         URL url = createUrl(target, params);
 
         // Make request
-        InputStream resultStream = makeGETRequest(url);
+        InputStream resultStream = HTTP.makeGETRequest(url);
 
         // Deserialize returned JSON into a MessageCollection
         Reader reader = new InputStreamReader(resultStream);
@@ -99,7 +98,7 @@ public class GroupMe {
         URL url = createUrl(target, params);
 
         // Make request
-        InputStream resultStream = makeGETRequest(url);
+        InputStream resultStream = HTTP.makeGETRequest(url);
 
         // Deserialize returned JSON into a MessageCollection
         Reader reader = new InputStreamReader(resultStream);
@@ -117,7 +116,7 @@ public class GroupMe {
         URL url = createUrl(target, params);
 
         // Make request
-        InputStream resultStream = makeGETRequest(url);
+        InputStream resultStream = HTTP.makeGETRequest(url);
 
         // Deserialize returned JSON into a Group
         Reader reader = new InputStreamReader(resultStream);
@@ -141,7 +140,7 @@ public class GroupMe {
     public boolean likeMessage(String groupId, String messageId) {
 
         URL url = createUrl("/messages/" + groupId + "/" + messageId + "/like");
-        InputStream result = makePOSTRequest(url);
+        InputStream result = HTTP.makePOSTRequest(url);
 
         // Probably a better way to check for success/failure than this.
         if (result != null) {
@@ -160,7 +159,7 @@ public class GroupMe {
 
         URL url = createUrl(
                 "/messages/" + groupId + "/" + messageid + "/unlike");
-        InputStream result = makePOSTRequest(url);
+        InputStream result = HTTP.makePOSTRequest(url);
 
         // Probably a better way to check for success/failure than this.
         if (result != null) {
@@ -213,43 +212,5 @@ public class GroupMe {
 
     }
 
-    /**
-     * TODO Maybe Split these into 2 parts: One that makes request and returns
-     * the connection so we can check for errors using HTTP codes, another that
-     * uses the first and just returns an inputStream if that's all we need.
-     */
-    public InputStream makeGETRequest(URL url) {
-        InputStream stream = null;
-
-        try {
-            HttpURLConnection connection = (HttpURLConnection) url
-                    .openConnection();
-            connection.setRequestMethod("GET");
-
-            connection.connect();
-            stream = connection.getInputStream();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return stream;
-    }
-
-    public InputStream makePOSTRequest(URL url) {
-        InputStream stream = null;
-
-        try {
-            HttpURLConnection connection = (HttpURLConnection) url
-                    .openConnection();
-            connection.setRequestMethod("POST");
-
-            connection.connect();
-            stream = connection.getInputStream();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return stream;
-    }
 
 }
