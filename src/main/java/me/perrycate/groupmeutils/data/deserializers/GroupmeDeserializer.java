@@ -1,8 +1,7 @@
 package me.perrycate.groupmeutils.data.deserializers;
 
-import com.google.gson.JsonObject;
-
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * Superclass for Deserializers that need to process something coming from
@@ -35,6 +34,7 @@ public class GroupmeDeserializer {
     /**
      * Returns the HTTP code associated with a response from the groupme servers 
      */
+    @SuppressWarnings("unused")
     private int getErrorCode(JsonElement json) {
         JsonObject envelope = json.getAsJsonObject();
         JsonObject metadata = envelope.get("meta").getAsJsonObject();

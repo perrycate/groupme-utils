@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
 /**

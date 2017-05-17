@@ -7,21 +7,18 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import me.perrycate.groupmeutils.data.Group;
+import me.perrycate.groupmeutils.data.GroupMessages;
 import me.perrycate.groupmeutils.data.Message;
 import me.perrycate.groupmeutils.data.deserializers.GroupArrayDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupMessagesDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.MessageDeserializer;
-import me.perrycate.groupmeutils.data.Group;
-import me.perrycate.groupmeutils.data.GroupMessages;
 
 /**
  * Contains useful methods for interacting with the GroupMe Api that return
@@ -30,7 +27,6 @@ import me.perrycate.groupmeutils.data.GroupMessages;
 public class GroupMe {
     // HTTP related constants
     private static final String BASE_URL = "https://api.groupme.com/v3";
-    private static final String CHARSET = "UTF-8";
 
     private final String apiToken;
     private final Gson gson; // used for deserializing things

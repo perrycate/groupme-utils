@@ -1,11 +1,17 @@
 package me.perrycate.groupmeutils.data.deserializers;
 
-import me.perrycate.groupmeutils.data.*;
-
 import java.lang.reflect.Type;
 import java.time.Instant;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
+import me.perrycate.groupmeutils.data.Message;
+import me.perrycate.groupmeutils.data.MessageBuilder;
 
 /**
  * Deserializes a JsonElement into a Message Object

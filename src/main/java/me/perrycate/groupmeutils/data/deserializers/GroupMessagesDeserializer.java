@@ -1,10 +1,16 @@
 package me.perrycate.groupmeutils.data.deserializers;
 
-import me.perrycate.groupmeutils.data.*;
-
 import java.lang.reflect.Type;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
+import me.perrycate.groupmeutils.data.GroupMessages;
+import me.perrycate.groupmeutils.data.Message;
 
 /**
  * Deserializes a JsonElement into a MessageCollection Object

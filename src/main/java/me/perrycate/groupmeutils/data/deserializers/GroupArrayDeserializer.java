@@ -1,17 +1,14 @@
 package me.perrycate.groupmeutils.data.deserializers;
 
 import java.lang.reflect.Type;
-import java.time.Instant;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 import me.perrycate.groupmeutils.data.Group;
-import me.perrycate.groupmeutils.data.GroupBuilder;
 
 /**
  * Deserializes a JSON array of groups into a Java Array of Groups.
