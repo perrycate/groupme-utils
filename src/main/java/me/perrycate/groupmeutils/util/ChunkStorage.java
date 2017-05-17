@@ -1,4 +1,4 @@
-package me.perrycate.groupmeutils;
+package me.perrycate.groupmeutils.util;
 
 import java.io.Closeable;
 import java.io.File;

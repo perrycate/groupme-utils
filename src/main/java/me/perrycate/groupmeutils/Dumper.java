@@ -20,6 +20,8 @@ import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 import me.perrycate.groupmeutils.data.Message;
+import me.perrycate.groupmeutils.util.ChunkStorage;
+import me.perrycate.groupmeutils.util.ProgressBar;
 
 /**
  * Dumps a groupme group to a text file. Ignores images for now.
