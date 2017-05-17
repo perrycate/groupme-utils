@@ -1,13 +1,17 @@
 package me.perrycate.groupmeutils.data;
 
+import java.io.Serializable;
+
 /**
  * Represents a group of messages from a group
- * 
+ *
  * Note: The GroupMe API only sends messages in groups of up to 100, so
  * getCount() (the number of messages total in a group) will usually be much
  * larger than the number of messages contained in a GroupMessages object.
  */
-public class GroupMessages {
+public class GroupMessages implements Serializable {
+
+    private static final long serialVersionUID = 6584230480555998937L;
 
     /**
      * The maximum number of messages that GroupMe will send a GroupMessages

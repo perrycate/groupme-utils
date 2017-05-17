@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Scanner;
 
 import me.perrycate.groupmeutils.api.GroupMe;
+import me.perrycate.groupmeutils.api.MessageIterator;
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
 import me.perrycate.groupmeutils.data.Message;
 import me.perrycate.groupmeutils.util.ChunkStorage;
-import me.perrycate.groupmeutils.util.ProgressBar;
 
 /**
  * Dumps a groupme group to a text file. Ignores images for now.
@@ -29,14 +29,11 @@ import me.perrycate.groupmeutils.util.ProgressBar;
 public class Dumper {
     private GroupMe groupme;
     private String groupId;
-    private Group group;
 
     private static String ENCODING = "UTF-8";
-    private static int LINE_WIDTH = 72; // Used for progress bars
 
     public Dumper(GroupMe groupmeClient, Group group) {
         this.groupme = groupmeClient;
-        this.group = group;
         this.groupId = group.getId();
     }
 
@@ -100,6 +97,7 @@ public class Dumper {
             }
             // Append
             long startTime = System.currentTimeMillis();
+            System.out.println("Dumping...");
             int messagesDumped = dumper.dump(fileToWrite);
             long elapsedTime = System.currentTimeMillis() - startTime;
 
@@ -116,10 +114,6 @@ public class Dumper {
      * at the bottom.
      */
     public int dump(File outputFile) {
-        // Get each message starting from bottom, then concatenate them.
-        // We use hold messages in groups of 100 in ChunkStorage to avoid
-        // attempting to store the entire group in memory while still not
-        // duplicating any network calls.
 
         // TODO check that outputFile does not already exist, and if it does
         // prompt user to confirm they want to overwrite it. (Then actually
@@ -131,28 +125,7 @@ public class Dumper {
         // just accidentally specifies appending at some random-ass file we know
         // nothing about.
 
-        // TODO could just use Message[] instead of GroupMessages, looks nicer
-        // is all
-
-        // Get each message in groups of GroupMessages.MAX_MESSAGES. Store in
-        // chunks to conserve memory.
-        ChunkStorage storage = new ChunkStorage();
-        int totalMessages = group.getMessageCount();
-        String lastMessageId = group.getLastMessageId();
-        GroupMessages messages;
-
-        ProgressBar bar = new ProgressBar(System.out, LINE_WIDTH,
-                totalMessages / GroupMessages.MAX_MESSAGES);
-
-        for (int i = 0; i < totalMessages; i += GroupMessages.MAX_MESSAGES) {
-            messages = groupme.getMessagesBefore(groupId, lastMessageId);
-            writeChunk(messages.getMessages(), storage);
-            lastMessageId = messages
-                    .getMessage(messages.getMessages().length - 1).getId();
-            bar.update();
-        }
-
-        // Concatenate each chunk into a single log
+        int messagesDumped = 0;
         try (
                 OutputStream o = Files.newOutputStream(outputFile.toPath(),
                         StandardOpenOption.APPEND, StandardOpenOption.WRITE,
@@ -160,16 +133,17 @@ public class Dumper {
 
                 BufferedOutputStream output = new BufferedOutputStream(o);) {
 
-            while (storage.size() != 0) {
-                output.write(storage.removeFirst());
+            MessageIterator messages = groupme.getAllMessages(groupId);
+            while (messages.hasNext()) {
+                output.write((format(messages.next()) + '\n').getBytes());
+                messagesDumped++;
             }
 
-            storage.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        return totalMessages;
+        return messagesDumped;
     }
     // */
 

@@ -1,11 +1,14 @@
 package me.perrycate.groupmeutils.data;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * Immutable class that represents a single message posted to a group.
  */
-public final class Message {
+public final class Message implements Serializable {
+
+    private static final long serialVersionUID = -6843486230238941617L;
 
     private String id;
     // Id used by client, groupme discards duplicate messages with the same guid

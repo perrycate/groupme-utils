@@ -106,8 +106,13 @@ public class GroupMe {
     }
 
     /**
-     * Returns a group matching the given id
+     * Returns a MessageIterator containing all of the messages in the specified
+     * group in order from oldest to most recent.
      */
+    public MessageIterator getAllMessages(String groupID) {
+        return new MessageIterator(this, groupID);
+    }
+
     public Group getGroup(String id) {
         String target = "/groups/" + id;
 
