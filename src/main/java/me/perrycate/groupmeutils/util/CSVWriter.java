@@ -15,11 +15,11 @@ import java.util.Map;
  *
  * @author perry
  */
-public class CSVWriter {
+public class CSVWriter<T> {
 
     private List<String> columns;
 
-    private List<Map<String, String>> data;
+    private List<Map<String, T>> data;
 
     /**
      * Creates a new CSVWriter with the given columns. When printing, the
@@ -47,7 +47,7 @@ public class CSVWriter {
      *            the key->value pairs to be added for each row
      * @returns true if a new column was created
      */
-    public boolean addRow(Map<String, String> row) {
+    public boolean addRow(Map<String, T> row) {
 
         // Update columns if necessary
         boolean modified = false;
@@ -79,7 +79,7 @@ public class CSVWriter {
             printAsRow(columns.toArray(new String[0]), out);
 
             // Print data
-            for (Map<String, String> row : data) {
+            for (Map<String, T> row : data) {
                 formatAndPrint(row, out);
             }
         } catch (FileNotFoundException e) {
@@ -91,10 +91,15 @@ public class CSVWriter {
     }
 
 
-    private void formatAndPrint(Map<String, String> data, PrintStream out) {
+    private void formatAndPrint(Map<String, T> data, PrintStream out) {
         String[] row = new String[columns.size()];
         for (int i = 0; i < columns.size(); i++) {
-            row[i] = data.getOrDefault(columns.get(i), "");
+            Object d = data.getOrDefault(columns.get(i), null);
+            if(d == null)
+                row[i] = "";
+            else
+                row[i] = d.toString();
+
         }
         printAsRow(row, out);
     }
