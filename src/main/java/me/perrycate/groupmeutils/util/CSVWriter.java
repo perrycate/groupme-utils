@@ -75,9 +75,12 @@ public class CSVWriter {
     public boolean writeTo(File file) {
         try {
             PrintStream out = new PrintStream(file);
+            // Print heading
+            printAsRow(columns.toArray(new String[0]), out);
 
+            // Print data
             for (Map<String, String> row : data) {
-                printRow(row, out);
+                formatAndPrint(row, out);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -87,13 +90,23 @@ public class CSVWriter {
         return true;
     }
 
-    private void printRow(Map<String, String> data, PrintStream out) {
-        StringBuilder line = new StringBuilder();
+
+    private void formatAndPrint(Map<String, String> data, PrintStream out) {
+        String[] row = new String[columns.size()];
         for (int i = 0; i < columns.size(); i++) {
-            line.append(data.getOrDefault(columns.get(i), ""));
-            if (i + 1 < columns.size())
+            row[i] = data.getOrDefault(columns.get(i), "");
+        }
+        printAsRow(row, out);
+    }
+
+    private void printAsRow(String[] row, PrintStream out) {
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < row.length; i++) {
+            line.append(row[i]);
+            if (i + 1 < row.length)
                 line.append(",");
         }
         out.println(line);
     }
+
 }
