@@ -1,11 +1,10 @@
 package me.perrycate.groupmeutils;
 
 import java.io.File;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -21,6 +20,7 @@ public class Stats {
     private CSVWriter<Integer> writer;
     private String groupID;
     private File outputFile;
+    private ZoneId timeZone;
 
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
@@ -52,34 +52,56 @@ public class Stats {
 
     public Stats(GroupMe g, String groupID, File outputFile) {
         this.api = g;
-        this.writer = new CSVWriter<Integer>();
+        this.writer = new CSVWriter<>();
         this.groupID = groupID;
         this.outputFile = outputFile;
+        this.timeZone = ZoneId.of("America/New_York");
+    }
+
+    public Stats(GroupMe g, String groupID, File outputFile, String timeZone) {
+        this.api = g;
+        this.writer = new CSVWriter<>();
+        this.groupID = groupID;
+        this.outputFile = outputFile;
+        this.timeZone = ZoneId.of(timeZone);
     }
 
     public void write() {
 
         // Collect data
         MessageIterator messages = api.getAllMessages(groupID);
-        Message currentMessage;
-        int day = -1;
-        HashMap<String, Integer> data = new HashMap<String, Integer>();
+        Message currentMessage = messages.next();
+        LocalDate day = LocalDateTime.ofInstant(
+                currentMessage.getCreatedAt(), this.timeZone).toLocalDate();
+        HashMap<String, Integer> data = new HashMap<>();
         while (messages.hasNext()) {
             currentMessage = messages.next();
 
             // Start new day if necessary
-            int currentDay = getDay(currentMessage.getCreatedAt());
-            if (day != currentDay) {
+            LocalDate currentDay = LocalDateTime
+                    .ofInstant(currentMessage.getCreatedAt(), this.timeZone)
+                    .toLocalDate();
+
+            long daysElapsed = ChronoUnit.DAYS.between(day, currentDay);
+            if (daysElapsed != 0) {
+                // Finish writing previous day
                 writer.addRow(data);
+
+                // If multiple days elapsed, write empty rows
+                data = new HashMap<>();
+                for (int i = 0; i < daysElapsed - 1; i++) {
+                    writer.addRow(data);
+                }
+
+                // Start new day
+                data = new HashMap<>();
                 day = currentDay;
-                data = new HashMap<String, Integer>();
             }
 
             // Add data for this message
             incrementPosts(currentMessage.getUserId(), data);
             if (currentMessage.getFavoritedBy() != null)
                 incrementLikes(currentMessage.getFavoritedBy(), data);
-
         }
         // Add final row
         writer.addRow(data);
@@ -103,14 +125,6 @@ public class Stats {
             int likeCount = data.getOrDefault(id, 0);
             data.put(id, likeCount + 1);
         }
-    }
-
-    /**
-     * Returns the day of the year that i occurred in.
-     */
-    private int getDay(Instant i) {
-        LocalDateTime date = LocalDateTime.ofInstant(i, ZoneId.of("America/New_York"));
-        return date.getDayOfYear();
     }
 
 }
