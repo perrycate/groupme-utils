@@ -18,7 +18,7 @@ import java.util.Map;
 public class CSVWriter<T> {
 
     private List<String> columns;
-
+    private String zero;
     private List<Map<String, T>> data;
 
     /**
@@ -27,14 +27,28 @@ public class CSVWriter<T> {
      *
      * @param c
      */
-    public CSVWriter(String[] c) {
+    public CSVWriter(String[] c, String zeroString) {
         columns = new ArrayList<>(Arrays.asList(c));
         data = new ArrayList<>();
+        zero = zeroString;
     }
 
     public CSVWriter() {
         columns = new ArrayList<>();
         data = new ArrayList<>();
+        zero = "";
+    }
+
+    /**
+     * Creates a new CSVWriter where any entry for which there is no data will
+     * have the given zeroString its place.
+     *
+     * @param zeroString
+     */
+    public CSVWriter(String zeroString) {
+        columns = new ArrayList<>();
+        data = new ArrayList<>();
+        zero = zeroString;
     }
 
     /**
@@ -96,7 +110,7 @@ public class CSVWriter<T> {
         for (int i = 0; i < columns.size(); i++) {
             Object d = data.getOrDefault(columns.get(i), null);
             if(d == null)
-                row[i] = "";
+                row[i] = zero;
             else
                 row[i] = d.toString();
 

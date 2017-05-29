@@ -52,7 +52,7 @@ public class Stats {
 
     public Stats(GroupMe g, String groupID, File outputFile) {
         this.api = g;
-        this.writer = new CSVWriter<>();
+        this.writer = new CSVWriter<>("0");
         this.groupID = groupID;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of("America/New_York");
@@ -60,7 +60,7 @@ public class Stats {
 
     public Stats(GroupMe g, String groupID, File outputFile, String timeZone) {
         this.api = g;
-        this.writer = new CSVWriter<>();
+        this.writer = new CSVWriter<>("0");
         this.groupID = groupID;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of(timeZone);
