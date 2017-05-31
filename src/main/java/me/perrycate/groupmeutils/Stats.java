@@ -107,7 +107,7 @@ public class Stats {
         writer.addRow(data);
 
         // Write and finish
-        writer.writeTo(outputFile);
+        writer.writeTo(outputFile, true);
         System.out.println("Finished!");
 
     }

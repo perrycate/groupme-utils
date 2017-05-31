@@ -79,18 +79,22 @@ public class CSVWriter {
     }
 
     /**
-     * Writes the data to the given file.
+     * Writes the data to the given file. If printColumns is true, prints a
+     * header containing each column name.
      *
      * Does not reset after printing, so subsequent calls will still contain the
      * previous data.
      *
      * @returns true if successful
      */
-    public boolean writeTo(File file) {
+    public boolean writeTo(File file, boolean printColumns) {
         try {
             PrintStream out = new PrintStream(file);
-            // Print heading
-            printAsRow(columns.toArray(new String[0]), out);
+
+            // Print column heading if requested
+            if (printColumns) {
+                printAsRow(columns.toArray(new String[0]), out);
+            }
 
             // Print data
             for (Map<String, ? extends Object> row : data) {
