@@ -11,6 +11,7 @@ import java.util.Scanner;
 import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.api.MessageIterator;
 import me.perrycate.groupmeutils.data.Group;
+import me.perrycate.groupmeutils.data.Member;
 import me.perrycate.groupmeutils.data.Message;
 import me.perrycate.groupmeutils.util.CSVWriter;
 
@@ -18,7 +19,7 @@ public class Stats {
 
     private GroupMe api;
     private CSVWriter writer;
-    private String groupID;
+    private Group group;
     private File outputFile;
     private ZoneId timeZone;
 
@@ -44,32 +45,44 @@ public class Stats {
         File out = new File(s.nextLine());
 
         // Analyze and dump
-        Stats stats = new Stats(api, selectedGroup.getId(), out);
+        Stats stats = new Stats(api, selectedGroup, out);
         stats.write();
 
         s.close();
     }
 
-    public Stats(GroupMe g, String groupID, File outputFile) {
+    public Stats(GroupMe g, Group group, File outputFile) {
         this.api = g;
         this.writer = new CSVWriter("0");
-        this.groupID = groupID;
+        this.group = group;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of("America/New_York");
     }
 
-    public Stats(GroupMe g, String groupID, File outputFile, String timeZone) {
+    public Stats(GroupMe g, Group group, File outputFile, String timeZone) {
         this.api = g;
         this.writer = new CSVWriter("0");
-        this.groupID = groupID;
+        this.group = group;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of(timeZone);
     }
 
     public void write() {
 
+        // Create header
+        HashMap<String, String> entries = new HashMap<>();
+        for(Member m : group.getMembers()) {
+            entries.put(getPostsKey(m.getUserId()), "Posts by " + m.getNickname());
+        }
+        // Groupme has a quirk where meta messages ("so and so left, joined,
+        // etc") are reported by a user with ID system, but system is not
+        // listed as a user.
+        entries.put(getPostsKey("system"), "System posts");
+
+        writer.addRow(entries);
+
         // Collect data
-        MessageIterator messages = api.getAllMessages(groupID);
+        MessageIterator messages = api.getAllMessages(group.getId());
         Message currentMessage = messages.next();
         LocalDate day = LocalDateTime.ofInstant(
                 currentMessage.getCreatedAt(), this.timeZone).toLocalDate();
@@ -107,13 +120,13 @@ public class Stats {
         writer.addRow(data);
 
         // Write and finish
-        writer.writeTo(outputFile, true);
+        writer.writeTo(outputFile, false);
         System.out.println("Finished!");
 
     }
 
     private void incrementPosts(String postedBy, HashMap<String, Integer> data) {
-        String id = postedBy + "_posts";
+        String id = getPostsKey(postedBy);
         int postCount = data.getOrDefault(id, 0);
         data.put(id, postCount + 1);
     }
@@ -121,10 +134,17 @@ public class Stats {
     private void incrementLikes(String[] likedBy, HashMap<String, Integer> data) {
         String id;
         for (String user : likedBy) {
-            id = user + "_likes";
+            id = getLikesKey(user);
             int likeCount = data.getOrDefault(id, 0);
             data.put(id, likeCount + 1);
         }
     }
 
+    private String getPostsKey(String userId) {
+        return userId + "_posts";
+    }
+
+    private String getLikesKey(String userId) {
+        return userId + "_likes";
+    }
 }
