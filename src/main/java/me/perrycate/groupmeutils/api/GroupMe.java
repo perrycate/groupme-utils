@@ -12,10 +12,12 @@ import com.google.gson.GsonBuilder;
 
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupMessages;
+import me.perrycate.groupmeutils.data.Member;
 import me.perrycate.groupmeutils.data.Message;
 import me.perrycate.groupmeutils.data.deserializers.GroupArrayDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.GroupMessagesDeserializer;
+import me.perrycate.groupmeutils.data.deserializers.MemberDeserializer;
 import me.perrycate.groupmeutils.data.deserializers.MessageDeserializer;
 import me.perrycate.groupmeutils.util.HTTP;
 
@@ -42,6 +44,8 @@ public class GroupMe {
         gsonBuilder.registerTypeAdapter(Group.class, new GroupDeserializer());
         gsonBuilder.registerTypeAdapter(Group[].class,
                 new GroupArrayDeserializer());
+        gsonBuilder.registerTypeAdapter(Member.class,
+                new MemberDeserializer());
 
         gson = gsonBuilder.create();
     }
@@ -68,7 +72,7 @@ public class GroupMe {
         String target = "/groups/" + groupId + "/messages";
 
         // get request url
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         params.put("after_id", afterId);
         params.put("limit", "" + GroupMessages.MAX_MESSAGES);
         URL url = createUrl(target, params);
@@ -92,7 +96,7 @@ public class GroupMe {
         String target = "/groups/" + groupId + "/messages";
 
         // get request url
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         params.put("before_id", beforeId);
         params.put("limit", "" + GroupMessages.MAX_MESSAGES);
         URL url = createUrl(target, params);
@@ -117,7 +121,7 @@ public class GroupMe {
         String target = "/groups/" + id;
 
         // Get request url
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         URL url = createUrl(target, params);
 
         // Make request
@@ -212,7 +216,7 @@ public class GroupMe {
      */
     private URL createUrl(String target) {
 
-        HashMap<String, String> empty = new HashMap<String, String>();
+        HashMap<String, String> empty = new HashMap<>();
         return createUrl(target, empty);
 
     }
