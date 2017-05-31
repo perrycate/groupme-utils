@@ -10,7 +10,7 @@ public class GroupBuilder {
     private String id;
     private String name;
     private String type; // TODO this should be an enum, once I figure out how
-                         // many types there are.
+    // many types there are.
     private String description;
     private String imageUrl;
     private String creatorUserId;
@@ -27,12 +27,13 @@ public class GroupBuilder {
     private int messageCount;
     private String lastMessageId;
     private Instant lastMessageCreatedAt; // Is this ever different from
-                                          // updatedAt?
+    // updatedAt?
+    private Member[] members;
 
     public Group createGroup() {
         return new Group(id, name, type, description, imageUrl,
                 creatorUserId, createdAt, updatedAt, shareUrl, messageCount,
-                lastMessageId, lastMessageCreatedAt);
+                lastMessageId, lastMessageCreatedAt, members);
     }
 
     public void setId(String id) {
@@ -81,6 +82,10 @@ public class GroupBuilder {
 
     public void setLastMessageCreatedAt(Instant lastMessageCreatedAt) {
         this.lastMessageCreatedAt = lastMessageCreatedAt;
+    }
+
+    public void setMembers(Member[] members) {
+        this.members = members;
     }
 
 }

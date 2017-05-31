@@ -10,7 +10,7 @@ public final class Group {
     private String id;
     private String name;
     private String type; // TODO this should be an enum, once I figure out how
-                         // many types there are.
+    // many types there are.
     private String description;
     private String imageUrl;
     private String creatorUserId;
@@ -27,12 +27,13 @@ public final class Group {
     private int messageCount;
     private String lastMessageId;
     private Instant lastMessageCreatedAt; // Is this ever different from
-                                          // updatedAt?
+    // updatedAt?
+    private Member[] members;
 
     public Group(String id, String name, String type, String description,
             String imageUrl, String creatorUserId, Instant createdAt,
             Instant updatedAt, String shareUrl, int messageCount,
-            String lastMessageId, Instant lastMessageCreatedAt) {
+            String lastMessageId, Instant lastMessageCreatedAt, Member[] members) {
         super();
         this.id = id;
         this.name = name;
@@ -46,6 +47,7 @@ public final class Group {
         this.messageCount = messageCount;
         this.lastMessageId = lastMessageId;
         this.lastMessageCreatedAt = lastMessageCreatedAt;
+        this.members = members;
     }
 
     public String getId() {
@@ -94,6 +96,10 @@ public final class Group {
 
     public Instant getLastMessageCreatedAt() {
         return lastMessageCreatedAt;
+    }
+
+    public Member[] getMembers() {
+        return members;
     }
 
 }

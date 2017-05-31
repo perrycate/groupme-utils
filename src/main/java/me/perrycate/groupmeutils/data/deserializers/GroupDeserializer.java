@@ -3,6 +3,7 @@ package me.perrycate.groupmeutils.data.deserializers;
 import java.lang.reflect.Type;
 import java.time.Instant;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -11,10 +12,12 @@ import com.google.gson.JsonParseException;
 
 import me.perrycate.groupmeutils.data.Group;
 import me.perrycate.groupmeutils.data.GroupBuilder;
+import me.perrycate.groupmeutils.data.Member;
 
 public class GroupDeserializer extends GroupmeDeserializer
-        implements JsonDeserializer<Group> {
+implements JsonDeserializer<Group> {
 
+    @Override
     public Group deserialize(JsonElement jsonElement, Type typeOfT,
             JsonDeserializationContext context) throws JsonParseException {
 
@@ -36,6 +39,17 @@ public class GroupDeserializer extends GroupmeDeserializer
         if (!json.get("share_url").isJsonNull()) {
             g.setShareUrl(json.get("share_url").getAsString());
         }
+
+        // Get members of the group
+        JsonArray response = json.get("members").getAsJsonArray();
+        int numMembers = response.size();
+        Member[] members = new Member[numMembers];
+        for (int i = 0; i < numMembers; i++) {
+            JsonElement elem = response.get(i);
+            members[i] = context.deserialize(elem, Member.class);
+        }
+        g.setMembers(members);
+
 
         // TODO this will be reworked later, see note in Group Class.
         JsonObject messages = json.get("messages").getAsJsonObject();
