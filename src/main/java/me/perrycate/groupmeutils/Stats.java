@@ -5,8 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import me.perrycate.groupmeutils.api.GroupMe;
 import me.perrycate.groupmeutils.api.MessageIterator;
@@ -18,7 +23,6 @@ import me.perrycate.groupmeutils.util.CSVWriter;
 public class Stats {
 
     private GroupMe api;
-    private CSVWriter writer;
     private Group group;
     private File outputFile;
     private ZoneId timeZone;
@@ -53,7 +57,6 @@ public class Stats {
 
     public Stats(GroupMe g, Group group, File outputFile) {
         this.api = g;
-        this.writer = new CSVWriter("0");
         this.group = group;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of("America/New_York");
@@ -61,7 +64,6 @@ public class Stats {
 
     public Stats(GroupMe g, Group group, File outputFile, String timeZone) {
         this.api = g;
-        this.writer = new CSVWriter("0");
         this.group = group;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of(timeZone);
@@ -69,24 +71,14 @@ public class Stats {
 
     public void write() {
 
-        // Create header
-        HashMap<String, String> entries = new HashMap<>();
-        for(Member m : group.getMembers()) {
-            entries.put(getPostsKey(m.getUserId()), "Posts by " + m.getNickname());
-        }
-        // Groupme has a quirk where meta messages ("so and so left, joined,
-        // etc") are reported by a user with ID system, but system is not
-        // listed as a user.
-        entries.put(getPostsKey("system"), "System posts");
+        List<Map<String, Integer>> grid = new ArrayList<>();
+        HashMap<String, Integer> data = new HashMap<>();
 
-        writer.addRow(entries);
-
-        // Collect data
         MessageIterator messages = api.getAllMessages(group.getId());
         Message currentMessage = messages.next();
         LocalDate day = LocalDateTime.ofInstant(
                 currentMessage.getCreatedAt(), this.timeZone).toLocalDate();
-        HashMap<String, Integer> data = new HashMap<>();
+
         while (messages.hasNext()) {
             currentMessage = messages.next();
 
@@ -98,12 +90,12 @@ public class Stats {
             long daysElapsed = ChronoUnit.DAYS.between(day, currentDay);
             if (daysElapsed != 0) {
                 // Finish writing previous day
-                writer.addRow(data);
+                grid.add(data);
 
                 // If multiple days elapsed, write empty rows
                 data = new HashMap<>();
                 for (int i = 0; i < daysElapsed - 1; i++) {
-                    writer.addRow(data);
+                    grid.add(data);
                 }
 
                 // Start new day
@@ -116,13 +108,35 @@ public class Stats {
             if (currentMessage.getFavoritedBy() != null)
                 incrementLikes(currentMessage.getFavoritedBy(), data);
         }
-        // Add final row
-        writer.addRow(data);
 
         // Write and finish
+        grid.add(data);
+        writeSums(grid, getNewCSVWriter(new String[0]));
+
+    }
+
+    private CSVWriter getNewCSVWriter(String[] columns) {
+        HashMap<String, String> entries = new HashMap<>();
+        for (Member m : group.getMembers()) {
+            entries.put(getPostsKey(m.getUserId()), "Posts by " + m.getNickname());
+        }
+        // Groupme has a quirk where meta messages ("so and so left, joined,
+        // etc") are reported by a user with ID system, but system is not
+        // listed as a user.
+        entries.put(getPostsKey("system"), "System posts");
+
+        CSVWriter writer = new CSVWriter(columns, "0");
+        writer.addRow(entries);
+        return writer;
+    }
+
+    private void writeSums(List<Map<String, Integer>> sums, CSVWriter writer) {
+        for (Map<String, Integer> row : sums) {
+            writer.addRow(row);
+        }
+
         writer.writeTo(outputFile, false);
         System.out.println("Finished!");
-
     }
 
     private void incrementPosts(String postedBy, HashMap<String, Integer> data) {
