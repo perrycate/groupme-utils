@@ -24,6 +24,7 @@ public class Stats {
 
     private GroupMe api;
     private Group group;
+    private Map<String, String> members;
     private File outputFile;
     private ZoneId timeZone;
 
@@ -56,10 +57,7 @@ public class Stats {
     }
 
     public Stats(GroupMe g, Group group, File outputFile) {
-        this.api = g;
-        this.group = group;
-        this.outputFile = outputFile;
-        this.timeZone = ZoneId.of("America/New_York");
+        this(g, group, outputFile, "America/New_York");
     }
 
     public Stats(GroupMe g, Group group, File outputFile, String timeZone) {
@@ -67,17 +65,28 @@ public class Stats {
         this.group = group;
         this.outputFile = outputFile;
         this.timeZone = ZoneId.of(timeZone);
+        this.members = new HashMap<String, String>();
+
+        for (Member m : group.getMembers()) {
+            members.put(getPostsKey(m.getUserId()), "Posts by " + m.getNickname());
+        }
+
+        // Groupme has a quirk where meta messages ("so and so left, joined,
+        // etc") are reported by a user with ID system, but system is not
+        // listed as a user.
+        members.put(getPostsKey("system"), "System posts");
+        members.put("date", "Date");
     }
 
     public void write() {
 
-        List<Map<String, Integer>> grid = new ArrayList<>();
-        HashMap<String, Integer> data = new HashMap<>();
+        CSVWriter writer = getNewCSVWriter();
 
         MessageIterator messages = api.getAllMessages(group.getId());
         Message currentMessage = messages.next();
         LocalDate day = LocalDateTime.ofInstant(
                 currentMessage.getCreatedAt(), this.timeZone).toLocalDate();
+        Map<String, Integer> data = new HashMap<>();
 
         while (messages.hasNext()) {
             currentMessage = messages.next();
@@ -87,15 +96,15 @@ public class Stats {
                     .ofInstant(currentMessage.getCreatedAt(), this.timeZone)
                     .toLocalDate();
 
-            long daysElapsed = ChronoUnit.DAYS.between(day, currentDay);
-            if (daysElapsed != 0) {
+            if (!sameDay(day, currentDay)) {
+                long daysElapsed = ChronoUnit.DAYS.between(day, currentDay);
                 // Finish writing previous day
-                grid.add(data);
+                addRow(writer, data, day);
 
                 // If multiple days elapsed, write empty rows
                 data = new HashMap<>();
-                for (int i = 0; i < daysElapsed - 1; i++) {
-                    grid.add(data);
+                for (int i = 1; i < daysElapsed; i++) {
+                    addRow(writer, data, day.plusDays(i));
                 }
 
                 // Start new day
@@ -107,51 +116,56 @@ public class Stats {
             incrementPosts(currentMessage.getUserId(), data);
             if (currentMessage.getFavoritedBy() != null)
                 incrementLikes(currentMessage.getFavoritedBy(), data);
+
+            // update header - adds new member, or updates name. (or does nothing.)
+            this.members.put(getPostsKey(currentMessage.getUserId()),
+                    currentMessage.getName());
         }
+        
+        
+        // Finish writing previous day
+        addRow(writer, data, day);
 
         // Write and finish
-        grid.add(data);
-        writeSums(grid, getNewCSVWriter(new String[0]));
+        writer.setHeader(members);
+        writer.writeTo(outputFile);
 
     }
-
-    private CSVWriter getNewCSVWriter(String[] columns) {
-        HashMap<String, String> entries = new HashMap<>();
-        for (Member m : group.getMembers()) {
-            entries.put(getPostsKey(m.getUserId()), "Posts by " + m.getNickname());
-        }
-        // Groupme has a quirk where meta messages ("so and so left, joined,
-        // etc") are reported by a user with ID system, but system is not
-        // listed as a user.
-        entries.put(getPostsKey("system"), "System posts");
-
-        CSVWriter writer = new CSVWriter(columns, "0");
-        writer.addRow(entries);
-        return writer;
+    
+    private void addRow(CSVWriter writer, Map<String, Integer> data, LocalDate day) {
+        Map<String, String> row = new HashMap(data);
+        row.put("date", day.toString());
+        writer.addRow(row);
     }
-
-    private void writeSums(List<Map<String, Integer>> sums, CSVWriter writer) {
-        for (Map<String, Integer> row : sums) {
-            writer.addRow(row);
-        }
-
-        writer.writeTo(outputFile, false);
-        System.out.println("Finished!");
-    }
-
-    private void incrementPosts(String postedBy, HashMap<String, Integer> data) {
+    
+    private void incrementPosts(String postedBy, Map<String, Integer> data) {
         String id = getPostsKey(postedBy);
         int postCount = data.getOrDefault(id, 0);
         data.put(id, postCount + 1);
     }
 
-    private void incrementLikes(String[] likedBy, HashMap<String, Integer> data) {
+    private void incrementLikes(String[] likedBy, Map<String, Integer> data) {
         String id;
         for (String user : likedBy) {
             id = getLikesKey(user);
             int likeCount = data.getOrDefault(id, 0);
             data.put(id, likeCount + 1);
         }
+}
+    
+    /**
+     * Returns true iff date1 and date2 are the same day of the same year.
+     */
+    private boolean sameDay(LocalDate date1, LocalDate date2) {
+        return date1.getYear() == date2.getYear() &&
+               date1.getDayOfYear() == date2.getDayOfYear();
+    }
+
+    private CSVWriter getNewCSVWriter() {
+        HashMap<String, String> entries = new HashMap<>();
+
+        CSVWriter writer = new CSVWriter("0");
+        return writer;
     }
 
     private String getPostsKey(String userId) {

@@ -17,27 +17,10 @@ import java.util.Map;
  */
 public class CSVWriter {
 
+    private Map<String, ? extends Object> header;
     private List<String> columns;
     private String zero;
     private List<Map<String, ? extends Object>> data;
-
-    /**
-     * Creates a new CSVWriter with the given columns. When printing, the
-     * columns will be in the given order.
-     *
-     * @param c
-     */
-    public CSVWriter(String[] c, String zeroString) {
-        columns = new ArrayList<>(Arrays.asList(c));
-        data = new ArrayList<>();
-        zero = zeroString;
-    }
-
-    public CSVWriter() {
-        columns = new ArrayList<>();
-        data = new ArrayList<>();
-        zero = "";
-    }
 
     /**
      * Creates a new CSVWriter where any entry for which there is no data will
@@ -51,9 +34,13 @@ public class CSVWriter {
         zero = zeroString;
     }
 
+    public CSVWriter() {
+        this("");
+    }
+
     /**
      * Adds a row of data to the output. Values should hold keys corresponding
-     * to the names of existing columns. If a key does not match an existing
+     * to existing columns. If a key does not match an existing
      * column, addRow will simply add a new column after the existing ones and
      * return true.
      *
@@ -63,7 +50,7 @@ public class CSVWriter {
      */
     public boolean addRow(Map<String, ? extends Object> row) {
 
-        // Update columns if necessary
+        // Add new columns if necessary
         boolean modified = false;
         for (String c : row.keySet()) {
             if (!columns.contains(c)) {
@@ -77,6 +64,13 @@ public class CSVWriter {
 
         return modified;
     }
+    
+    /**
+     * Maps values to print for each column key in the header.
+     */
+    public void setHeader(Map<String, String> header) {
+        this.header = header;
+    }
 
     /**
      * Writes the data to the given file. If printColumns is true, prints a
@@ -87,13 +81,13 @@ public class CSVWriter {
      *
      * @returns true if successful
      */
-    public boolean writeTo(File file, boolean printColumns) {
+    public boolean writeTo(File file) {
         try {
             PrintStream out = new PrintStream(file);
-
-            // Print column heading if requested
-            if (printColumns) {
-                printAsRow(columns.toArray(new String[0]), out);
+            
+            // Add header if applicable
+            if(header != null) {
+                formatAndPrint(header, out);
             }
 
             // Print data
